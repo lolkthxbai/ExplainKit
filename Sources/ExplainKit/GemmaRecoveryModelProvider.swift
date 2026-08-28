@@ -103,7 +103,7 @@ public struct GemmaRecoveryModelProvider: RecoveryModelProviding {
     }
 
     private func validateAdvice(from text: String) throws -> RecoveryAdvice {
-        guard let data = text.data(using: .utf8),
+        guard let data = jsonData(from: text),
               let generated = try? JSONDecoder().decode(GeneratedAdvice.self, from: data) else {
             throw GemmaProviderError.invalidResponse
         }
@@ -130,6 +130,28 @@ public struct GemmaRecoveryModelProvider: RecoveryModelProviding {
                 RecoveryAction(id: "gemma-action-\(index + 1)", title: title)
             }
         )
+    }
+
+    private func jsonData(from text: String) -> Data? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasPrefix("```") else {
+            return trimmed.data(using: .utf8)
+        }
+
+        let lines = trimmed.split(separator: "\n", omittingEmptySubsequences: false)
+        guard lines.count >= 3,
+              let openingFence = lines.first,
+              openingFence == "```" || openingFence.lowercased() == "```json",
+              lines.last == "```" else {
+            return nil
+        }
+
+        let json = lines
+            .dropFirst()
+            .dropLast()
+            .joined(separator: "\n")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return json.data(using: .utf8)
     }
 
     private static func isValidModelIdentifier(_ model: String) -> Bool {

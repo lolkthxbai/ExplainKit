@@ -39,6 +39,29 @@ struct GemmaRecoveryModelProviderTests {
         #expect(requestJSON.contains("thinkingLevel"))
     }
 
+    @Test("A fenced JSON response becomes recovery advice", .tags(.networking))
+    func fencedJSONBecomesAdvice() async throws {
+        let responseData = try responseData(
+            text: """
+            ```json
+            {"title":"Change delivery","message":"Select another option, then retry.","actions":["Change Delivery Option","Try Again"]}
+            ```
+            """
+        )
+        let client = StubHTTPClient { request in
+            (responseData, try Self.httpResponse(for: request, statusCode: 200))
+        }
+        let provider = try GemmaRecoveryModelProvider(apiKey: "test-api-key", client: client)
+
+        let advice = try await provider.recoveryAdvice(
+            for: ErrorSnapshot(domain: "DemoCheckout", code: 2001, message: "Checkout failed"),
+            context: RecoveryContext(feature: "checkout")
+        )
+
+        #expect(advice.title == "Change delivery")
+        #expect(advice.actions.map(\.title) == ["Change Delivery Option", "Try Again"])
+    }
+
     @Test("Malformed model output is rejected", .tags(.networking))
     func malformedOutputIsRejected() async throws {
         let responseData = try responseData(text: "not-json")
