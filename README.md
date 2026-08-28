@@ -61,6 +61,33 @@ Select **Run Scenario** to compare the original generic error with the recovery
 guidance. Each run also writes its reviewed diagnostic to Apple unified logging
 under subsystem `com.lolkthxbai.ExplainKitDemo` and category `recovery`.
 
+The demo deliberately stays offline and deterministic. It does not read an API
+key or call Gemma.
+
+## Hosted Gemma provider
+
+`GemmaRecoveryModelProvider` implements `RecoveryModelProviding` through the
+[Gemini API](https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api). It uses
+`gemma-4-26b-a4b-it` by default and accepts another supported model identifier.
+
+```swift
+let provider = try GemmaRecoveryModelProvider(apiKey: apiKey)
+let engine = RecoveryEngine(
+    rules: approvedRules,
+    fallbackAdvice: offlineFallback,
+    modelProvider: provider
+)
+```
+
+The provider sends the API key in the `x-goog-api-key` header, requests one
+response, and validates the returned JSON before converting it into
+`RecoveryAdvice`. Invalid output and network failures are discarded by
+`RecoveryEngine` in favor of local fallback advice.
+
+Embedding an API key in a distributed iOS or macOS app is not secure because it
+can be extracted. The direct provider is suitable for this proof of concept;
+production apps should call a developer-controlled backend that owns the key.
+
 ## Development
 
 Build and test the package with:
