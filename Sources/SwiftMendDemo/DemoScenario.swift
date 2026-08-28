@@ -1,4 +1,4 @@
-import ExplainKit
+import SwiftMend
 import Foundation
 
 enum DemoScenario: String, CaseIterable, Identifiable, Sendable {

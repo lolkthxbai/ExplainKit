@@ -1,6 +1,6 @@
-# ExplainKit
+# SwiftMend
 
-ExplainKit is a UI-independent recovery SDK for Swift apps. It turns caught
+SwiftMend is a UI-independent recovery SDK for Swift apps. It turns caught
 errors, privacy-reviewed diagnostics, and developer-approved policy into clear
 next steps the host app can present to its users.
 
@@ -10,11 +10,11 @@ the provider is absent or unavailable.
 
 ## Install
 
-Add ExplainKit as a Swift Package Manager dependency, then import it where an
+Add SwiftMend as a Swift Package Manager dependency, then import it where an
 error is caught:
 
 ```swift
-import ExplainKit
+import SwiftMend
 ```
 
 ## Integration
@@ -57,12 +57,12 @@ For the live scenario, export the key and launch the demo from the same terminal
 
 ```shell
 export GEMINI_API_KEY="your-key"
-swift run ExplainKitDemo
+swift run SwiftMendDemo
 ```
 
 Select **Run Scenario** to compare the original generic error with the recovery
 guidance. Each run also writes its reviewed diagnostic to Apple unified logging
-under subsystem `com.lolkthxbai.ExplainKitDemo` and category `recovery`.
+under subsystem `com.lolkthxbai.SwiftMendDemo` and category `recovery`.
 
 The UI reports whether `GEMINI_API_KEY` is available without displaying or
 logging its value. It also labels every result as a developer rule, Gemma, or

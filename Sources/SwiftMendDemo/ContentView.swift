@@ -1,4 +1,4 @@
-import ExplainKit
+import SwiftMend
 import SwiftUI
 
 struct ContentView: View {
@@ -6,7 +6,7 @@ struct ContentView: View {
     @State private var runningScenarios: Set<DemoScenario> = []
 
     private let diagnosticSource = OSLogDiagnosticSource(
-        subsystem: "com.lolkthxbai.ExplainKitDemo",
+        subsystem: "com.lolkthxbai.SwiftMendDemo",
         category: "recovery"
     )
     private let configuration: DemoConfiguration
@@ -33,7 +33,7 @@ struct ContentView: View {
                 }
                 .padding(24)
             }
-            .navigationTitle("ExplainKit Demo")
+            .navigationTitle("SwiftMend Demo")
         }
     }
 
@@ -90,7 +90,7 @@ private struct ScenarioCard: View {
                 if let outcome {
                     result(outcome)
                 } else {
-                    Text("Run the scenario to compare the original error with ExplainKit’s advice.")
+                    Text("Run the scenario to compare the original error with SwiftMend’s advice.")
                         .foregroundStyle(.secondary)
                 }
 
@@ -119,7 +119,7 @@ private struct ScenarioCard: View {
             GridRow {
                 Text("Generic error")
                     .font(.headline)
-                Text("ExplainKit advice")
+                Text("SwiftMend advice")
                     .font(.headline)
             }
 

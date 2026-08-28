@@ -2,15 +2,15 @@
 import PackageDescription
 
 let package = Package(
-    name: "ExplainKit",
+    name: "SwiftMend",
     platforms: [.macOS(.v15), .iOS(.v18)],
     products: [
-        .library(name: "ExplainKit", targets: ["ExplainKit"]),
-        .executable(name: "ExplainKitDemo", targets: ["ExplainKitDemo"])
+        .library(name: "SwiftMend", targets: ["SwiftMend"]),
+        .executable(name: "SwiftMendDemo", targets: ["SwiftMendDemo"])
     ],
     targets: [
-        .target(name: "ExplainKit"),
-        .executableTarget(name: "ExplainKitDemo", dependencies: ["ExplainKit"]),
-        .testTarget(name: "ExplainKitTests", dependencies: ["ExplainKit", "ExplainKitDemo"])
+        .target(name: "SwiftMend"),
+        .executableTarget(name: "SwiftMendDemo", dependencies: ["SwiftMend"]),
+        .testTarget(name: "SwiftMendTests", dependencies: ["SwiftMend", "SwiftMendDemo"])
     ]
 )

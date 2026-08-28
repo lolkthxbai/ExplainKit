@@ -1,11 +1,11 @@
-import ExplainKit
+import SwiftMend
 import Foundation
 import Testing
-@testable import ExplainKitDemo
+@testable import SwiftMendDemo
 
 struct DemoScenarioTests {
     private let source = OSLogDiagnosticSource(
-        subsystem: "com.example.ExplainKitTests",
+        subsystem: "com.example.SwiftMendTests",
         category: "demo"
     )
 

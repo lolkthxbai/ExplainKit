@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import ExplainKit
+@testable import SwiftMend
 
 struct RecoveryEngineTests {
     private let fallback = RecoveryAdvice(

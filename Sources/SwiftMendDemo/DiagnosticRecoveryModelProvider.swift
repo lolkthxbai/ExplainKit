@@ -1,4 +1,4 @@
-import ExplainKit
+import SwiftMend
 import Foundation
 
 struct DiagnosticRecoveryModelProvider: RecoveryModelProviding {

@@ -21,7 +21,7 @@ public struct OSLogDiagnosticSource: Sendable {
         let error = error as NSError
 
         logger.error(
-            "ExplainKit captured error domain=\(error.domain, privacy: .public) code=\(error.code, privacy: .public) feature=\(context.feature, privacy: .public) message=\(safeMessage, privacy: .public) debug=\(safeDebugDescription, privacy: .public)"
+            "SwiftMend captured error domain=\(error.domain, privacy: .public) code=\(error.code, privacy: .public) feature=\(context.feature, privacy: .public) message=\(safeMessage, privacy: .public) debug=\(safeDebugDescription, privacy: .public)"
         )
 
         return ErrorSnapshot(
