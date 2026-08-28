@@ -15,7 +15,9 @@ struct DemoConfiguration: Sendable {
             return
         }
 
-        gemmaProvider = try? GemmaRecoveryModelProvider(apiKey: apiKey)
+        gemmaProvider = try? DiagnosticRecoveryModelProvider(
+            wrapping: GemmaRecoveryModelProvider(apiKey: apiKey)
+        )
     }
 
     init(gemmaProvider: (any RecoveryModelProviding)?) {

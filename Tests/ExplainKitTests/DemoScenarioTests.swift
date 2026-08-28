@@ -1,4 +1,5 @@
 import ExplainKit
+import Foundation
 import Testing
 @testable import ExplainKitDemo
 
@@ -64,4 +65,21 @@ struct DemoScenarioTests {
         #expect(configured.isLiveGemmaConfigured)
         #expect(missing.isLiveGemmaConfigured == false)
     }
+
+    @Test("Gemma provider failures are classified into safe diagnostics")
+    func gemmaProviderFailuresAreClassified() {
+        #expect(DemoModelFailure(error: GemmaProviderError.invalidConfiguration) == .invalidConfiguration)
+        #expect(DemoModelFailure(error: GemmaProviderError.invalidResponse) == .invalidResponse)
+        #expect(DemoModelFailure(error: GemmaProviderError.httpStatus(404)) == .httpStatus(404))
+    }
+
+    @Test("Transport and unexpected failures are classified without their descriptions")
+    func nonProviderFailuresAreClassified() {
+        #expect(DemoModelFailure(error: URLError(.notConnectedToInternet)) == .transport(-1009))
+        #expect(DemoModelFailure(error: DemoTestError.unexpected) == .unexpected)
+    }
+}
+
+private enum DemoTestError: Error {
+    case unexpected
 }
