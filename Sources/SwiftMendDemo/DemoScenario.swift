@@ -1,9 +1,10 @@
-import ExplainKit
+import SwiftMend
 import Foundation
 
 enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
     case passwordRejected
     case noInternet
+    case liveGemma
 
     var id: String { rawValue }
 
@@ -11,6 +12,7 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .passwordRejected: "Password rejected"
         case .noInternet: "No internet"
+        case .liveGemma: "Live Gemma recovery"
         }
     }
 
@@ -18,6 +20,7 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .passwordRejected: "Developer-approved rule"
         case .noInternet: "Local fallback"
+        case .liveGemma: "Hosted Gemma request"
         }
     }
 
@@ -25,10 +28,14 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .passwordRejected: "key.fill"
         case .noInternet: "wifi.slash"
+        case .liveGemma: "sparkles"
         }
     }
 
-    func run(using source: OSLogDiagnosticSource) async -> DemoOutcome {
+    func run(
+        using source: OSLogDiagnosticSource,
+        modelProvider: (any RecoveryModelProviding)? = nil
+    ) async -> DemoOutcome {
         let context = recoveryContext
         let snapshot = source.capture(
             error: error,
@@ -36,8 +43,13 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
             safeDebugDescription: safeDebugDescription,
             context: context
         )
-        let advice = await recoveryEngine.recover(from: snapshot, context: context)
-        return DemoOutcome(snapshot: snapshot, advice: advice)
+        let resolution = await recoveryEngine(modelProvider: modelProvider).resolve(snapshot, context: context)
+        DemoResolutionLogger.record(scenario: self, source: resolution.source)
+        return DemoOutcome(
+            snapshot: snapshot,
+            advice: resolution.advice,
+            source: resolution.source
+        )
     }
 
     private var error: NSError {
@@ -46,6 +58,8 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
             NSError(domain: "DemoAuth", code: 1001)
         case .noInternet:
             NSError(domain: NSURLErrorDomain, code: NSURLErrorNotConnectedToInternet)
+        case .liveGemma:
+            NSError(domain: "DemoCheckout", code: 2001)
         }
     }
 
@@ -53,6 +67,7 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .passwordRejected: "The password could not be accepted."
         case .noInternet: "The Internet connection appears to be offline."
+        case .liveGemma: "The checkout request could not be completed."
         }
     }
 
@@ -60,6 +75,7 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .passwordRejected: "Password policy validation failed."
         case .noInternet: "A network request failed before reaching the service."
+        case .liveGemma: "The selected delivery option is temporarily unavailable."
         }
     }
 
@@ -72,10 +88,15 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
             )
         case .noInternet:
             RecoveryContext(feature: "profile sync")
+        case .liveGemma:
+            RecoveryContext(
+                feature: "checkout",
+                attributes: ["deliveryOption": "store pickup"]
+            )
         }
     }
 
-    private var recoveryEngine: RecoveryEngine {
+    private func recoveryEngine(modelProvider: (any RecoveryModelProviding)?) -> RecoveryEngine {
         switch self {
         case .passwordRejected:
             RecoveryEngine(
@@ -108,6 +129,18 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
                     ]
                 )
             )
+        case .liveGemma:
+            RecoveryEngine(
+                fallbackAdvice: RecoveryAdvice(
+                    title: "Choose another delivery option",
+                    message: "Return to checkout, select a different delivery option, and try again.",
+                    actions: [
+                        RecoveryAction(id: "change-delivery", title: "Change Delivery Option"),
+                        RecoveryAction(id: "retry", title: "Try Again")
+                    ]
+                ),
+                modelProvider: modelProvider
+            )
         }
     }
 
@@ -123,4 +156,5 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
 struct DemoOutcome: Equatable, Sendable {
     let snapshot: ErrorSnapshot
     let advice: RecoveryAdvice
+    let source: RecoveryAdviceSource
 }

@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import ExplainKit
+@testable import SwiftMend
 
 struct RecoveryEngineTests {
     private let fallback = RecoveryAdvice(
@@ -23,12 +23,13 @@ struct RecoveryEngineTests {
             modelProvider: MockRecoveryModelProvider(returning: modelAdvice)
         )
 
-        let advice = await engine.recover(
-            from: ErrorSnapshot(domain: "Auth", code: 1001, message: "Password rejected"),
+        let resolution = await engine.resolve(
+            ErrorSnapshot(domain: "Auth", code: 1001, message: "Password rejected"),
             context: RecoveryContext(feature: "sign-up", attributes: ["minimumPasswordLength": "12"])
         )
 
-        #expect(advice == ruleAdvice)
+        #expect(resolution.advice == ruleAdvice)
+        #expect(resolution.source == .developerRule(id: "password-rejected"))
     }
 
     @Test("A rule requires all of its declared context attributes")
@@ -56,12 +57,13 @@ struct RecoveryEngineTests {
             modelProvider: MockRecoveryModelProvider(returning: modelAdvice)
         )
 
-        let advice = await engine.recover(
-            from: ErrorSnapshot(domain: NSURLErrorDomain, code: NSURLErrorNotConnectedToInternet, message: "Offline"),
+        let resolution = await engine.resolve(
+            ErrorSnapshot(domain: NSURLErrorDomain, code: NSURLErrorNotConnectedToInternet, message: "Offline"),
             context: RecoveryContext(feature: "profile sync")
         )
 
-        #expect(advice == modelAdvice)
+        #expect(resolution.advice == modelAdvice)
+        #expect(resolution.source == .model)
     }
 
     @Test("A provider failure uses local fallback advice")
@@ -71,12 +73,13 @@ struct RecoveryEngineTests {
             modelProvider: MockRecoveryModelProvider(failingWith: .unavailable)
         )
 
-        let advice = await engine.recover(
-            from: ErrorSnapshot(domain: NSURLErrorDomain, code: NSURLErrorNotConnectedToInternet, message: "Offline"),
+        let resolution = await engine.resolve(
+            ErrorSnapshot(domain: NSURLErrorDomain, code: NSURLErrorNotConnectedToInternet, message: "Offline"),
             context: RecoveryContext(feature: "profile sync")
         )
 
-        #expect(advice == fallback)
+        #expect(resolution.advice == fallback)
+        #expect(resolution.source == .fallback)
     }
 
     @Test("Error snapshots retain NSError identity with reviewed diagnostics")

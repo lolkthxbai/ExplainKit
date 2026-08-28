@@ -1,0 +1,307 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* ContentView.swift */; };
+		A10000000000000000000002 /* DemoConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* DemoConfiguration.swift */; };
+		A10000000000000000000003 /* DemoIntroductionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* DemoIntroductionView.swift */; };
+		A10000000000000000000004 /* DemoResolutionLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* DemoResolutionLogger.swift */; };
+		A10000000000000000000005 /* DemoScenario.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* DemoScenario.swift */; };
+		A10000000000000000000006 /* DiagnosticRecoveryModelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* DiagnosticRecoveryModelProvider.swift */; };
+		A10000000000000000000007 /* GenericErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* GenericErrorView.swift */; };
+		A10000000000000000000008 /* OutcomeComparisonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* OutcomeComparisonView.swift */; };
+		A10000000000000000000009 /* RecoveryAdviceSource+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* RecoveryAdviceSource+Presentation.swift */; };
+		A1000000000000000000000A /* RecoveryAdviceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* RecoveryAdviceView.swift */; };
+		A1000000000000000000000B /* ScenarioCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* ScenarioCard.swift */; };
+		A1000000000000000000000C /* SwiftMendDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* SwiftMendDemoApp.swift */; };
+		A1000000000000000000000D /* SwiftMend in Frameworks */ = {isa = PBXBuildFile; productRef = A90000000000000000000002 /* SwiftMend */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A20000000000000000000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A20000000000000000000002 /* DemoConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoConfiguration.swift; sourceTree = "<group>"; };
+		A20000000000000000000003 /* DemoIntroductionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoIntroductionView.swift; sourceTree = "<group>"; };
+		A20000000000000000000004 /* DemoResolutionLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoResolutionLogger.swift; sourceTree = "<group>"; };
+		A20000000000000000000005 /* DemoScenario.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoScenario.swift; sourceTree = "<group>"; };
+		A20000000000000000000006 /* DiagnosticRecoveryModelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticRecoveryModelProvider.swift; sourceTree = "<group>"; };
+		A20000000000000000000007 /* GenericErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericErrorView.swift; sourceTree = "<group>"; };
+		A20000000000000000000008 /* OutcomeComparisonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutcomeComparisonView.swift; sourceTree = "<group>"; };
+		A20000000000000000000009 /* RecoveryAdviceSource+Presentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RecoveryAdviceSource+Presentation.swift"; sourceTree = "<group>"; };
+		A2000000000000000000000A /* RecoveryAdviceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryAdviceView.swift; sourceTree = "<group>"; };
+		A2000000000000000000000B /* ScenarioCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenarioCard.swift; sourceTree = "<group>"; };
+		A2000000000000000000000C /* SwiftMendDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftMendDemoApp.swift; sourceTree = "<group>"; };
+		A2000000000000000000000D /* SwiftMendDemoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftMendDemoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A2000000000000000000000E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A2000000000000000000000F /* Demo.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Demo.xcconfig; sourceTree = "<group>"; };
+		A20000000000000000000010 /* Secrets.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig.example; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A30000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000000000000000000000D /* SwiftMend in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A40000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				A40000000000000000000002 /* Shared Demo Sources */,
+				A40000000000000000000003 /* Configuration */,
+				A40000000000000000000004 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A40000000000000000000002 /* Shared Demo Sources */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000001 /* ContentView.swift */,
+				A20000000000000000000002 /* DemoConfiguration.swift */,
+				A20000000000000000000003 /* DemoIntroductionView.swift */,
+				A20000000000000000000004 /* DemoResolutionLogger.swift */,
+				A20000000000000000000005 /* DemoScenario.swift */,
+				A20000000000000000000006 /* DiagnosticRecoveryModelProvider.swift */,
+				A20000000000000000000007 /* GenericErrorView.swift */,
+				A20000000000000000000008 /* OutcomeComparisonView.swift */,
+				A20000000000000000000009 /* RecoveryAdviceSource+Presentation.swift */,
+				A2000000000000000000000A /* RecoveryAdviceView.swift */,
+				A2000000000000000000000B /* ScenarioCard.swift */,
+				A2000000000000000000000C /* SwiftMendDemoApp.swift */,
+			);
+			name = "Shared Demo Sources";
+			path = ../../Sources/SwiftMendDemo;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000003 /* Configuration */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000000E /* Info.plist */,
+				A2000000000000000000000F /* Demo.xcconfig */,
+				A20000000000000000000010 /* Secrets.xcconfig.example */,
+			);
+			name = Configuration;
+			path = Configurations;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000004 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000000D /* SwiftMendDemoApp.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A50000000000000000000001 /* SwiftMendDemoApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A80000000000000000000002 /* Build configuration list for PBXNativeTarget "SwiftMendDemoApp" */;
+			buildPhases = (
+				A60000000000000000000001 /* Sources */,
+				A30000000000000000000001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SwiftMendDemoApp;
+			packageProductDependencies = (
+				A90000000000000000000002 /* SwiftMend */,
+			);
+			productName = SwiftMendDemoApp;
+			productReference = A2000000000000000000000D /* SwiftMendDemoApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A70000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					A50000000000000000000001 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+				};
+			};
+			buildConfigurationList = A80000000000000000000001 /* Build configuration list for PBXProject "SwiftMendDemoApp" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A40000000000000000000001;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A90000000000000000000001 /* XCLocalSwiftPackageReference "../.." */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = A40000000000000000000004 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A50000000000000000000001 /* SwiftMendDemoApp */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A60000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000001 /* ContentView.swift in Sources */,
+				A10000000000000000000002 /* DemoConfiguration.swift in Sources */,
+				A10000000000000000000003 /* DemoIntroductionView.swift in Sources */,
+				A10000000000000000000004 /* DemoResolutionLogger.swift in Sources */,
+				A10000000000000000000005 /* DemoScenario.swift in Sources */,
+				A10000000000000000000006 /* DiagnosticRecoveryModelProvider.swift in Sources */,
+				A10000000000000000000007 /* GenericErrorView.swift in Sources */,
+				A10000000000000000000008 /* OutcomeComparisonView.swift in Sources */,
+				A10000000000000000000009 /* RecoveryAdviceSource+Presentation.swift in Sources */,
+				A1000000000000000000000A /* RecoveryAdviceView.swift in Sources */,
+				A1000000000000000000000B /* ScenarioCard.swift in Sources */,
+				A1000000000000000000000C /* SwiftMendDemoApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		AA0000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		AA0000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		AA0000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A2000000000000000000000F /* Demo.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Configurations/Info.plist;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lolkthxbai.SwiftMendDemo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		AA0000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A2000000000000000000000F /* Demo.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Configurations/Info.plist;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lolkthxbai.SwiftMendDemo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A80000000000000000000001 /* Build configuration list for PBXProject "SwiftMendDemoApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000001 /* Debug */,
+				AA0000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A80000000000000000000002 /* Build configuration list for PBXNativeTarget "SwiftMendDemoApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000003 /* Debug */,
+				AA0000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		A90000000000000000000001 /* XCLocalSwiftPackageReference "../.." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A90000000000000000000002 /* SwiftMend */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A90000000000000000000001 /* XCLocalSwiftPackageReference "../.." */;
+			productName = SwiftMend;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = A70000000000000000000001 /* Project object */;
+}

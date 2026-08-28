@@ -1,6 +1,6 @@
-# ExplainKit
+# SwiftMend
 
-ExplainKit is a UI-independent recovery SDK for Swift apps. It turns caught
+SwiftMend is a UI-independent recovery SDK for Swift apps. It turns caught
 errors, privacy-reviewed diagnostics, and developer-approved policy into clear
 next steps the host app can present to its users.
 
@@ -10,11 +10,11 @@ the provider is absent or unavailable.
 
 ## Install
 
-Add ExplainKit as a Swift Package Manager dependency, then import it where an
+Add SwiftMend as a Swift Package Manager dependency, then import it where an
 error is caught:
 
 ```swift
-import ExplainKit
+import SwiftMend
 ```
 
 ## Integration
@@ -46,23 +46,40 @@ raw server responses.
 
 ## Demo
 
-The included SwiftUI demo is a macOS executable with two deterministic flows:
+The included SwiftUI demo is a macOS executable with three flows:
 
 - Password rejected resolves through a developer-approved rule.
 - No internet resolves through local fallback advice.
+- Live Gemma sends a sanitized checkout error to the hosted model and falls
+  back locally if the key, network, API, or response is unavailable.
 
-Run it from the repository root:
+For the live scenario, export the key and launch the demo from the same terminal:
 
 ```shell
-swift run ExplainKitDemo
+export GEMINI_API_KEY="your-key"
+swift run SwiftMendDemo
 ```
 
 Select **Run Scenario** to compare the original generic error with the recovery
 guidance. Each run also writes its reviewed diagnostic to Apple unified logging
-under subsystem `com.lolkthxbai.ExplainKitDemo` and category `recovery`.
+under subsystem `com.lolkthxbai.SwiftMendDemo` and category `recovery`.
 
-The demo deliberately stays offline and deterministic. It does not read an API
-key or call Gemma.
+The UI reports whether `GEMINI_API_KEY` is available without displaying or
+logging its value. It also labels every result as a developer rule, Gemma, or
+local fallback. The first two scenarios never call the model.
+
+The live scenario sends only this reviewed sample diagnostic to Google:
+
+- Domain and code: `DemoCheckout`, `2001`
+- Message: `The checkout request could not be completed.`
+- Debug description: `The selected delivery option is temporarily unavailable.`
+- Context: checkout with delivery option `store pickup`
+
+### iPhone demo
+
+Open `Examples/SwiftMendDemoApp/SwiftMendDemoApp.xcodeproj`, choose an iPhone Simulator, and run the `SwiftMendDemoApp` scheme. It links the local SwiftMend package and reuses the tested demo scenarios, with a compact comparison layout for iPhone.
+
+The deterministic password and no-internet scenarios work without configuration. For hosted Gemma, follow `Examples/SwiftMendDemoApp/README.md`; its local secrets file is ignored by Git.
 
 ## Hosted Gemma provider
 

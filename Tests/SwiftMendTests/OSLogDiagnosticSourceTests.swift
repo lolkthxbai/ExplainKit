@@ -1,11 +1,11 @@
 import Foundation
 import Testing
-@testable import ExplainKit
+@testable import SwiftMend
 
 struct OSLogDiagnosticSourceTests {
     @Test("Logging capture returns only the developer-reviewed diagnostics")
     func captureReturnsSafeSnapshot() {
-        let source = OSLogDiagnosticSource(subsystem: "com.example.ExplainKitTests", category: "authentication")
+        let source = OSLogDiagnosticSource(subsystem: "com.example.SwiftMendTests", category: "authentication")
         let error = NSError(
             domain: "Auth",
             code: 1001,

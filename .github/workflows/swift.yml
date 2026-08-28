@@ -15,3 +15,11 @@ jobs:
         run: swift build
       - name: Test
         run: swift test
+      - name: Build iPhone demo
+        run: >-
+          xcodebuild -quiet
+          -project Examples/SwiftMendDemoApp/SwiftMendDemoApp.xcodeproj
+          -scheme SwiftMendDemoApp
+          -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO
+          build
