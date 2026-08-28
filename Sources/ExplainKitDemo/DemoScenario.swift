@@ -44,6 +44,7 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
             context: context
         )
         let resolution = await recoveryEngine(modelProvider: modelProvider).resolve(snapshot, context: context)
+        DemoResolutionLogger.record(scenario: self, source: resolution.source)
         return DemoOutcome(
             snapshot: snapshot,
             advice: resolution.advice,
