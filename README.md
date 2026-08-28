@@ -19,8 +19,8 @@ import ExplainKit
 
 ## Integration
 
-Capture an error through Apple unified logging, then pass the same sanitized
-snapshot to the recovery engine:
+Capture an error through [Apple unified logging](https://developer.apple.com/documentation/os/logging),
+then pass the same sanitized snapshot to the recovery engine:
 
 ```swift
 let context = RecoveryContext(
