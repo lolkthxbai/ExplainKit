@@ -11,6 +11,6 @@ let package = Package(
     targets: [
         .target(name: "ExplainKit"),
         .executableTarget(name: "ExplainKitDemo", dependencies: ["ExplainKit"]),
-        .testTarget(name: "ExplainKitTests", dependencies: ["ExplainKit"])
+        .testTarget(name: "ExplainKitTests", dependencies: ["ExplainKit", "ExplainKitDemo"])
     ]
 )
