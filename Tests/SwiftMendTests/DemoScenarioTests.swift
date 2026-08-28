@@ -60,9 +60,11 @@ struct DemoScenarioTests {
     @Test("Demo configuration detects the API key without calling the network")
     func configurationDetectsAPIKey() {
         let configured = DemoConfiguration(environment: ["GEMINI_API_KEY": "test-api-key"])
-        let missing = DemoConfiguration(environment: [:])
+        let bundleConfigured = DemoConfiguration(environment: [:], bundleAPIKey: "test-bundle-key")
+        let missing = DemoConfiguration(environment: [:], bundleAPIKey: nil)
 
         #expect(configured.isLiveGemmaConfigured)
+        #expect(bundleConfigured.isLiveGemmaConfigured)
         #expect(missing.isLiveGemmaConfigured == false)
     }
 
