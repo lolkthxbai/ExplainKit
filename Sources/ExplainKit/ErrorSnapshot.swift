@@ -14,13 +14,17 @@ public struct ErrorSnapshot: Codable, Equatable, Sendable {
         self.debugDescription = debugDescription
     }
 
-    public init(error: any Error) {
+    public init(
+        error: any Error,
+        safeMessage: String,
+        safeDebugDescription: String = ""
+    ) {
         let error = error as NSError
         self.init(
             domain: error.domain,
             code: error.code,
-            message: error.localizedDescription,
-            debugDescription: error.description
+            message: safeMessage,
+            debugDescription: safeDebugDescription
         )
     }
 }

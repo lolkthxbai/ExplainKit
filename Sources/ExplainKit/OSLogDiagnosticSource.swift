@@ -25,10 +25,9 @@ public struct OSLogDiagnosticSource: Sendable {
         )
 
         return ErrorSnapshot(
-            domain: error.domain,
-            code: error.code,
-            message: safeMessage,
-            debugDescription: safeDebugDescription
+            error: error,
+            safeMessage: safeMessage,
+            safeDebugDescription: safeDebugDescription
         )
     }
 }
