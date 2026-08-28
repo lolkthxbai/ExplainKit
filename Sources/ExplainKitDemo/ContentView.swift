@@ -3,11 +3,17 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var outcomes: [DemoScenario: DemoOutcome] = [:]
+    @State private var runningScenarios: Set<DemoScenario> = []
 
     private let diagnosticSource = OSLogDiagnosticSource(
         subsystem: "com.lolkthxbai.ExplainKitDemo",
         category: "recovery"
     )
+    private let configuration: DemoConfiguration
+
+    init(environment: [String: String] = ProcessInfo.processInfo.environment) {
+        configuration = DemoConfiguration(environment: environment)
+    }
 
     var body: some View {
         NavigationStack {
@@ -19,6 +25,8 @@ struct ContentView: View {
                         ScenarioCard(
                             scenario: scenario,
                             outcome: outcomes[scenario],
+                            isRunning: runningScenarios.contains(scenario),
+                            isLiveGemmaConfigured: configuration.isLiveGemmaConfigured,
                             run: { run(scenario) }
                         )
                     }
@@ -33,14 +41,26 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Turn generic failures into useful next steps")
                 .font(.title2.bold())
-            Text("Each scenario writes a privacy-reviewed diagnostic through Apple Logging, then resolves it with deterministic ExplainKit policy.")
+            Text("Each scenario writes a privacy-reviewed diagnostic through Apple Logging. The first two stay deterministic; the third can call hosted Gemma when GEMINI_API_KEY is available.")
                 .foregroundStyle(.secondary)
         }
     }
 
     private func run(_ scenario: DemoScenario) {
-        Task {
-            outcomes[scenario] = await scenario.run(using: diagnosticSource)
+        guard runningScenarios.contains(scenario) == false else { return }
+        runningScenarios.insert(scenario)
+
+        Task { @MainActor in
+            let outcome = await scenario.run(
+                using: diagnosticSource,
+                modelProvider: scenario == .liveGemma ? configuration.gemmaProvider : nil
+            )
+            guard Task.isCancelled == false else {
+                runningScenarios.remove(scenario)
+                return
+            }
+            outcomes[scenario] = outcome
+            runningScenarios.remove(scenario)
         }
     }
 }
@@ -48,6 +68,8 @@ struct ContentView: View {
 private struct ScenarioCard: View {
     let scenario: DemoScenario
     let outcome: DemoOutcome?
+    let isRunning: Bool
+    let isLiveGemmaConfigured: Bool
     let run: () -> Void
 
     var body: some View {
@@ -56,6 +78,15 @@ private struct ScenarioCard: View {
                 Label(scenario.subtitle, systemImage: scenario.symbol)
                     .foregroundStyle(.secondary)
 
+                if scenario == .liveGemma {
+                    Label(
+                        isLiveGemmaConfigured ? "GEMINI_API_KEY available" : "GEMINI_API_KEY missing — local fallback will be used",
+                        systemImage: isLiveGemmaConfigured ? "checkmark.circle.fill" : "exclamationmark.triangle.fill"
+                    )
+                    .foregroundStyle(isLiveGemmaConfigured ? .green : .orange)
+                    .font(.callout)
+                }
+
                 if let outcome {
                     result(outcome)
                 } else {
@@ -63,9 +94,17 @@ private struct ScenarioCard: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Button("Run Scenario", action: run)
-                    .buttonStyle(.borderedProminent)
-                    .accessibilityLabel("Run \(scenario.title) scenario")
+                Button(action: run) {
+                    if isRunning {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Text("Run Scenario")
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(isRunning)
+                .accessibilityLabel("Run \(scenario.title) scenario")
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(8)
@@ -96,6 +135,9 @@ private struct ScenarioCard: View {
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
+                    Label(outcome.source.displayName, systemImage: outcome.source.symbol)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(outcome.source.color)
                     Text(outcome.advice.title)
                         .fontWeight(.semibold)
                     Text(outcome.advice.message)
@@ -110,6 +152,32 @@ private struct ScenarioCard: View {
 }
 
 #Preview {
-    ContentView()
+    ContentView(environment: [:])
         .frame(width: 800, height: 700)
+}
+
+private extension RecoveryAdviceSource {
+    var displayName: String {
+        switch self {
+        case .developerRule(let id): "Developer rule · \(id)"
+        case .model: "Gemma"
+        case .fallback: "Local fallback"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .developerRule: "checkmark.shield.fill"
+        case .model: "sparkles"
+        case .fallback: "arrow.uturn.backward.circle.fill"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .developerRule: .blue
+        case .model: .purple
+        case .fallback: .orange
+        }
+    }
 }
