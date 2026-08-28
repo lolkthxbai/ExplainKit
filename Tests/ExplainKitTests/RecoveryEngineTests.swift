@@ -79,15 +79,25 @@ struct RecoveryEngineTests {
         #expect(advice == fallback)
     }
 
-    @Test("Error snapshots retain NSError details")
-    func errorSnapshotPreservesNSErrorDetails() {
-        let error = NSError(domain: "Auth", code: 1001, userInfo: [NSLocalizedDescriptionKey: "Password rejected"])
+    @Test("Error snapshots retain NSError identity with reviewed diagnostics")
+    func errorSnapshotPreservesNSErrorIdentity() {
+        let error = NSError(
+            domain: "Auth",
+            code: 1001,
+            userInfo: [NSLocalizedDescriptionKey: "Rejected password: secret-value"]
+        )
 
-        let snapshot = ErrorSnapshot(error: error)
+        let snapshot = ErrorSnapshot(
+            error: error,
+            safeMessage: "Password rejected",
+            safeDebugDescription: "Password policy validation failed"
+        )
 
         #expect(snapshot.domain == "Auth")
         #expect(snapshot.code == 1001)
         #expect(snapshot.message == "Password rejected")
+        #expect(snapshot.debugDescription == "Password policy validation failed")
+        #expect(snapshot.message.contains("secret-value") == false)
     }
 
     private func passwordRule(advice: RecoveryAdvice) -> RecoveryRule {
