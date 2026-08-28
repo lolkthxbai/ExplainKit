@@ -75,6 +75,12 @@ The live scenario sends only this reviewed sample diagnostic to Google:
 - Debug description: `The selected delivery option is temporarily unavailable.`
 - Context: checkout with delivery option `store pickup`
 
+### iPhone demo
+
+Open `Examples/SwiftMendDemoApp/SwiftMendDemoApp.xcodeproj`, choose an iPhone Simulator, and run the `SwiftMendDemoApp` scheme. It links the local SwiftMend package and reuses the tested demo scenarios, with a compact comparison layout for iPhone.
+
+The deterministic password and no-internet scenarios work without configuration. For hosted Gemma, follow `Examples/SwiftMendDemoApp/README.md`; its local secrets file is ignored by Git.
+
 ## Hosted Gemma provider
 
 `GemmaRecoveryModelProvider` implements `RecoveryModelProviding` through the
