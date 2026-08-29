@@ -6,21 +6,27 @@ import Testing
 struct RecoveryEvaluationTests {
     @Test("The bundled v1 dataset covers every category and split")
     func bundledDatasetCoverage() throws {
-        let dataset = try RecoveryEvaluationDataset.bundledV1()
+        let v1 = try RecoveryEvaluationDataset.bundledV1()
+        let dataset = try RecoveryEvaluationDataset.bundledV2()
 
+        #expect(v1.datasetVersion == "1.0.0")
+        #expect(v1.scenarios.count == 21)
         #expect(dataset.schemaVersion == 1)
-        #expect(dataset.datasetVersion == "1.0.0")
-        #expect(dataset.scenarios.count == 21)
+        #expect(dataset.datasetVersion == "2.0.0")
+        #expect(dataset.scenarios.count == 70)
         #expect(Set(dataset.scenarios.map(\.category)) == Set(RecoveryScenarioCategory.allCases))
         for category in RecoveryScenarioCategory.allCases {
             let categoryScenarios = dataset.scenarios.filter { $0.category == category }
             #expect(Set(categoryScenarios.map(\.split)) == Set(RecoveryEvaluationSplit.allCases))
+            #expect(categoryScenarios.count { $0.split == .training } == 6)
+            #expect(categoryScenarios.count { $0.split == .validation } == 2)
+            #expect(categoryScenarios.count { $0.split == .test } == 2)
         }
     }
 
     @Test("Fine-tuning export uses only the requested split and canonical action IDs")
     func fineTuningExport() throws {
-        let dataset = try RecoveryEvaluationDataset.bundledV1()
+        let dataset = try RecoveryEvaluationDataset.bundledLatest()
         let records = try RecoveryFineTuningExporter.records(
             from: dataset,
             split: .training
@@ -32,7 +38,7 @@ struct RecoveryEvaluationTests {
         let lines = String(decoding: data, as: UTF8.self)
             .split(separator: "\n")
 
-        #expect(records.count == 7)
+        #expect(records.count == 42)
         #expect(lines.count == records.count)
         #expect(Set(records.map(\.scenarioID)).isDisjoint(with: Set(
             dataset.scenarios.filter { $0.split == .test }.map(\.id)
@@ -40,6 +46,15 @@ struct RecoveryEvaluationTests {
         for record in records {
             #expect(record.messages.map(\.role) == ["system", "user", "assistant"])
             let scenario = try #require(dataset.scenarios.first { $0.id == record.scenarioID })
+            let expectedPrompt = try RecoveryModelPrompt.userPrompt(
+                for: RecoveryModelRequest(
+                    snapshot: scenario.snapshot,
+                    context: scenario.context,
+                    approvedActions: scenario.approvedActions
+                )
+            )
+            #expect(record.messages[0].content == RecoveryModelPrompt.systemInstruction)
+            #expect(record.messages[1].content == expectedPrompt)
             for actionID in scenario.referenceAdvice.actions.map(\.id) {
                 #expect(record.messages.last?.content.contains(actionID) == true)
             }

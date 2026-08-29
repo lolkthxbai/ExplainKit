@@ -33,10 +33,22 @@ public struct RecoveryEvaluationDataset: Codable, Equatable, Sendable {
     }
 
     public static func bundledV1() throws -> RecoveryEvaluationDataset {
+        try bundled(version: "v1")
+    }
+
+    public static func bundledV2() throws -> RecoveryEvaluationDataset {
+        try bundled(version: "v2")
+    }
+
+    public static func bundledLatest() throws -> RecoveryEvaluationDataset {
+        try bundledV2()
+    }
+
+    private static func bundled(version: String) throws -> RecoveryEvaluationDataset {
         guard let url = Bundle.module.url(
             forResource: "recovery-scenarios",
             withExtension: "json",
-            subdirectory: "Resources/Datasets/v1"
+            subdirectory: "Resources/Datasets/\(version)"
         ) else {
             throw RecoveryEvaluationDatasetError.bundledDatasetMissing
         }

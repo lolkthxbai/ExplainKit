@@ -11,7 +11,7 @@ struct SwiftMendBenchmark {
         let dataset = if let datasetURL = arguments.datasetURL {
             try RecoveryEvaluationDataset.load(from: datasetURL)
         } else {
-            try RecoveryEvaluationDataset.bundledV1()
+            try RecoveryEvaluationDataset.bundledLatest()
         }
 
         let configuration = LocalGemmaConfiguration(

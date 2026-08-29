@@ -24,6 +24,7 @@ struct LocalGemmaRecoveryModelProviderTests {
         #expect(advice.actions == approvedActions)
         #expect(generationRequest.prompt.contains("profile sync"))
         #expect(generationRequest.prompt.contains("check-wifi"))
+        #expect(generationRequest.systemInstruction == RecoveryModelPrompt.systemInstruction)
         #expect(generationRequest.approvedActionIDs == approvedActions.map(\.id))
         #expect(generationRequest.maximumOutputTokens == 256)
     }

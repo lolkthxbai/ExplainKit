@@ -11,7 +11,9 @@ swift run SwiftMendDatasetTool --split training --output /tmp/swiftmend-train.js
 swift run SwiftMendDatasetTool --split validation --output /tmp/swiftmend-validation.jsonl
 ```
 
-The v1 dataset has one training, one validation, and one held-out test scenario per category. That is enough to validate the pipeline, not enough evidence for a production model decision. Expand and review v2 before treating the fine-tune as more than an experiment.
+The default v2 dataset exports 42 training and 14 validation records across all
+seven categories. Its 14 test records stay held out. V1 remains bundled so old
+results can be reproduced, but it is not the default training source.
 
 ## 2. Train the adapter on a CUDA machine
 

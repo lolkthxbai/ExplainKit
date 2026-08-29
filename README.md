@@ -201,11 +201,11 @@ package without vendoring Google's runtime.
 
 ## Evaluation and 270M experiment
 
-`SwiftMendEvaluation` includes the versioned v1 recovery dataset with 21
-reviewed scenarios. Password, authentication, networking, permissions, storage,
-payments, and service-failure categories each have distinct training,
-validation, and held-out test cases. The test split is never exported by the
-fine-tuning tool.
+`SwiftMendEvaluation` preserves the 21-scenario v1 dataset and uses v2 by
+default. V2 contains 70 reviewed scenarios: 42 training, 14 validation, and 14
+held-out test cases across password, authentication, networking, permissions,
+storage, payments, and service failures. The test split is never exported by
+the fine-tuning tool.
 
 Run a baseline after placing the licensed 1B artifact on the machine:
 

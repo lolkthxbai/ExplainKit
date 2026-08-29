@@ -14,7 +14,7 @@ struct SwiftMendDatasetTool {
         let dataset = if let datasetPath = value(after: "--dataset", in: arguments) {
             try RecoveryEvaluationDataset.load(from: URL(filePath: datasetPath))
         } else {
-            try RecoveryEvaluationDataset.bundledV1()
+            try RecoveryEvaluationDataset.bundledLatest()
         }
         let outputURL = URL(filePath: outputPath)
         try FileManager.default.createDirectory(
