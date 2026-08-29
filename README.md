@@ -1,13 +1,56 @@
 # SwiftMend
 
-SwiftMend is a UI-independent recovery SDK for Swift apps. It turns caught
-errors, privacy-reviewed diagnostics, and developer-approved policy into clear
-next steps the host app can present to its users.
+> Safer recovery guidance for Swift app errors, powered by constrained Gemma.
+
+[Watch the 2:52 demo](https://www.youtube.com/watch?v=m3QOL5QlNrk) ·
+[View the Devpost project](https://devpost.com/software/swiftmend) ·
+[Jump to installation](#install)
+
+SwiftMend is a UI-independent recovery SDK that helps Swift developers turn
+caught errors into clear, safe next steps for app users. The host app supplies
+a privacy-reviewed diagnostic and developer-approved policy; SwiftMend chooses
+the safest available recovery path without claiming to catch every failure or
+automatically repair the app.
 
 The recovery engine always prefers matching developer rules. If no rule
 matches, it asks an optional model provider to explain the failure and select
 one to three developer-approved action IDs. It falls back to local advice when
 the provider, catalog, network, API, or response is unavailable or invalid.
+
+<p align="center">
+  <img src="submission-assets/screenshots/iphone-live-gemma.png" width="380" alt="SwiftMend iPhone demo comparing a generic checkout error with constrained Gemma recovery advice">
+</p>
+
+## Why SwiftMend
+
+Generic error messages leave users stuck even when a safe recovery action is
+available. Developers can write tailored guidance for every failure, but that
+work is easy to postpone and difficult to keep consistent across authentication,
+networking, checkout, uploads, and unexpected edge cases.
+
+SwiftMend keeps developers in control while improving that experience. Exact
+rules take priority, Gemma can explain the long tail of caught errors only by
+selecting approved action IDs, and deterministic local advice remains available
+when model guidance cannot be used.
+
+## Architecture
+
+```mermaid
+flowchart TD
+    A[Host app catches an error] --> B[Privacy-reviewed ErrorSnapshot and RecoveryContext]
+    B --> C[RecoveryEngine]
+    C --> D{Matching developer rule?}
+    D -->|Yes| E[Canonical developer advice]
+    D -->|No| F{Gemma and approved actions available?}
+    F -->|Yes| G[Explanation and approved action IDs]
+    G --> H{Response valid?}
+    H -->|Yes| I[Canonical developer actions]
+    H -->|No| J[Deterministic local fallback]
+    F -->|No| J
+    E --> K[Host app presents 1–3 next steps]
+    I --> K
+    J --> K
+```
 
 ## Install
 
@@ -96,6 +139,9 @@ The included SwiftUI demo has four flows:
   only approved delivery or store actions.
 - Photo upload too large sends a reviewed `DemoUpload` error for an 18 MB photo
   against a 10 MB limit and selects only approved photo recovery actions.
+
+The complete walkthrough is available in the
+[SwiftMend demo video](https://www.youtube.com/watch?v=m3QOL5QlNrk).
 
 For the hosted scenarios, export the key and launch the demo from the same terminal:
 
@@ -274,3 +320,47 @@ Build and test the package with:
 swift build
 swift test
 ```
+
+## Challenges
+
+The central product challenge was giving Gemma enough context to explain an
+error without passing passwords, tokens, account data, or raw server responses.
+That led to SwiftMend's explicit privacy-reviewed snapshot boundary.
+
+The reliability challenge was ensuring model output could never make recovery
+itself fail. SwiftMend validates the response, rejects unknown or malformed
+action selections, maps accepted IDs back to canonical developer actions, and
+uses a deterministic fallback whenever validation or inference fails.
+
+The model challenge was testing whether a smaller on-device model could meet
+the same constrained contract. The team built a held-out evaluation pipeline,
+fine-tuned Gemma 3 270M, and changed the package default only after it passed the
+same-machine comparison and a physical-iPhone benchmark.
+
+## What we learned
+
+AI recovery guidance works best behind deterministic policy, not as a
+replacement for it. The model is useful for contextualizing unexpected caught
+errors, while developer rules, canonical actions, and local fallbacks provide
+control and reliability.
+
+We also learned that error handling is a user-experience problem. A technically
+correct diagnosis is not enough; the useful output is a small set of safe steps
+the user can take immediately.
+
+## What's next
+
+- Add opt-in wrappers for common networking and authentication flows.
+- Ship reusable SwiftUI recovery components while keeping the core UI-independent.
+- Move hosted-model access behind a developer-controlled backend for production.
+- Expand the reviewed dataset and repeat the gated model comparison as new
+  recovery categories are added.
+
+## Team
+
+| Team member | Role | Contribution |
+| --- | --- | --- |
+| [Jose “Junior” Garcia](https://www.linkedin.com/in/josejuniorgarcia/) | Project lead and Swift SDK | Created SwiftMend's vision and purpose, led the team, set goals, coordinated resources, and contributed to the SDK and package design. |
+| [Dawid Hunicz](https://www.linkedin.com/in/dawidhunicz/) | ML/AI lead | Guided the hosted and on-device Gemma work, established verification checkpoints and quality controls, supported testing, and helped prepare the project write-up. |
+| [Daniel Espinosa](https://www.linkedin.com/in/daniel-steven-espinosa-vasco-23b6551b5/) | Swift and SwiftUI engineer | Contributed to the demo presentation, core package, developer SDK, and privacy layer. |
+| [Yordi Espinosa](https://www.linkedin.com/in/yordi-espinosa-vasco-a02554316/) | Swift and SwiftUI engineer | Contributed to the demo presentation, core package, developer SDK, and privacy layer. |
