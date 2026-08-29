@@ -12,9 +12,6 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
 
     var id: String { rawValue }
 
-    static var liveGemmaStorePickup: DemoScenario { .storePickupUnavailable }
-    static var liveGemmaPhotoUpload: DemoScenario { .photoUploadTooLarge }
-
     var title: String {
         switch self {
         case .checkoutInventoryChanged:
@@ -110,8 +107,13 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
     var symbol: String { metadata.symbol }
     var fallbackTrigger: DemoFallbackTrigger? { metadata.fallbackTrigger }
     var modelRoute: DemoModelRoute { metadata.modelRoute }
-    var usesModel: Bool { modelRoute.usesConfiguredProvider }
-    var usesGemma: Bool { modelRoute == .localGemma }
+    var genericSnapshot: ErrorSnapshot {
+        ErrorSnapshot(
+            error: error,
+            safeMessage: safeMessage,
+            safeDebugDescription: safeDebugDescription
+        )
+    }
 
     func run(
         using source: OSLogDiagnosticSource,

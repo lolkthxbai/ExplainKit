@@ -13,10 +13,7 @@
 		A10000000000000000000004 /* DemoResolutionLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* DemoResolutionLogger.swift */; };
 		A10000000000000000000005 /* DemoScenario.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* DemoScenario.swift */; };
 		A10000000000000000000006 /* DiagnosticRecoveryModelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* DiagnosticRecoveryModelProvider.swift */; };
-		A10000000000000000000007 /* GenericErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* GenericErrorView.swift */; };
-		A10000000000000000000008 /* OutcomeComparisonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* OutcomeComparisonView.swift */; };
 		A10000000000000000000009 /* RecoveryAdviceSource+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* RecoveryAdviceSource+Presentation.swift */; };
-		A1000000000000000000000A /* RecoveryAdviceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* RecoveryAdviceView.swift */; };
 		A1000000000000000000000B /* ScenarioCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* ScenarioCard.swift */; };
 		A1000000000000000000000C /* SwiftMendDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* SwiftMendDemoApp.swift */; };
 		A1000000000000000000000D /* SwiftMend in Frameworks */ = {isa = PBXBuildFile; productRef = A90000000000000000000002 /* SwiftMend */; };
@@ -28,6 +25,11 @@
 		A10000000000000000000013 /* DemoModelRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* DemoModelRoute.swift */; };
 		A10000000000000000000014 /* DemoProviderKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* DemoProviderKind.swift */; };
 		A10000000000000000000015 /* DemoScenarioMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* DemoScenarioMetadata.swift */; };
+		A10000000000000000000016 /* DemoViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* DemoViewModel.swift */; };
+		A10000000000000000000017 /* GeminiAvailabilityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* GeminiAvailabilityView.swift */; };
+		A10000000000000000000018 /* LocalGemmaProvisioningView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001A /* LocalGemmaProvisioningView.swift */; };
+		A10000000000000000000019 /* ScenarioDetailBlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001B /* ScenarioDetailBlock.swift */; };
+		A1000000000000000000001A /* ScenarioDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001C /* ScenarioDetailsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,10 +39,7 @@
 		A20000000000000000000004 /* DemoResolutionLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoResolutionLogger.swift; sourceTree = "<group>"; };
 		A20000000000000000000005 /* DemoScenario.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoScenario.swift; sourceTree = "<group>"; };
 		A20000000000000000000006 /* DiagnosticRecoveryModelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticRecoveryModelProvider.swift; sourceTree = "<group>"; };
-		A20000000000000000000007 /* GenericErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericErrorView.swift; sourceTree = "<group>"; };
-		A20000000000000000000008 /* OutcomeComparisonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutcomeComparisonView.swift; sourceTree = "<group>"; };
 		A20000000000000000000009 /* RecoveryAdviceSource+Presentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RecoveryAdviceSource+Presentation.swift"; sourceTree = "<group>"; };
-		A2000000000000000000000A /* RecoveryAdviceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryAdviceView.swift; sourceTree = "<group>"; };
 		A2000000000000000000000B /* ScenarioCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenarioCard.swift; sourceTree = "<group>"; };
 		A2000000000000000000000C /* SwiftMendDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftMendDemoApp.swift; sourceTree = "<group>"; };
 		A2000000000000000000000D /* SwiftMendDemoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftMendDemoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -54,6 +53,11 @@
 		A20000000000000000000015 /* DemoModelRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoModelRoute.swift; sourceTree = "<group>"; };
 		A20000000000000000000016 /* DemoProviderKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoProviderKind.swift; sourceTree = "<group>"; };
 		A20000000000000000000017 /* DemoScenarioMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoScenarioMetadata.swift; sourceTree = "<group>"; };
+		A20000000000000000000018 /* DemoViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoViewModel.swift; sourceTree = "<group>"; };
+		A20000000000000000000019 /* GeminiAvailabilityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiAvailabilityView.swift; sourceTree = "<group>"; };
+		A2000000000000000000001A /* LocalGemmaProvisioningView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalGemmaProvisioningView.swift; sourceTree = "<group>"; };
+		A2000000000000000000001B /* ScenarioDetailBlock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenarioDetailBlock.swift; sourceTree = "<group>"; };
+		A2000000000000000000001C /* ScenarioDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenarioDetailsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,10 +91,7 @@
 				A20000000000000000000004 /* DemoResolutionLogger.swift */,
 				A20000000000000000000005 /* DemoScenario.swift */,
 				A20000000000000000000006 /* DiagnosticRecoveryModelProvider.swift */,
-				A20000000000000000000007 /* GenericErrorView.swift */,
-				A20000000000000000000008 /* OutcomeComparisonView.swift */,
 				A20000000000000000000009 /* RecoveryAdviceSource+Presentation.swift */,
-				A2000000000000000000000A /* RecoveryAdviceView.swift */,
 				A2000000000000000000000B /* ScenarioCard.swift */,
 				A2000000000000000000000C /* SwiftMendDemoApp.swift */,
 				A20000000000000000000011 /* LocalGemmaModelStore.swift */,
@@ -100,6 +101,11 @@
 				A20000000000000000000015 /* DemoModelRoute.swift */,
 				A20000000000000000000016 /* DemoProviderKind.swift */,
 				A20000000000000000000017 /* DemoScenarioMetadata.swift */,
+				A20000000000000000000018 /* DemoViewModel.swift */,
+				A20000000000000000000019 /* GeminiAvailabilityView.swift */,
+				A2000000000000000000001A /* LocalGemmaProvisioningView.swift */,
+				A2000000000000000000001B /* ScenarioDetailBlock.swift */,
+				A2000000000000000000001C /* ScenarioDetailsView.swift */,
 			);
 			name = "Shared Demo Sources";
 			path = ../../Sources/SwiftMendDemo;
@@ -195,10 +201,7 @@
 				A10000000000000000000004 /* DemoResolutionLogger.swift in Sources */,
 				A10000000000000000000005 /* DemoScenario.swift in Sources */,
 				A10000000000000000000006 /* DiagnosticRecoveryModelProvider.swift in Sources */,
-				A10000000000000000000007 /* GenericErrorView.swift in Sources */,
-				A10000000000000000000008 /* OutcomeComparisonView.swift in Sources */,
 				A10000000000000000000009 /* RecoveryAdviceSource+Presentation.swift in Sources */,
-				A1000000000000000000000A /* RecoveryAdviceView.swift in Sources */,
 				A1000000000000000000000B /* ScenarioCard.swift in Sources */,
 				A1000000000000000000000C /* SwiftMendDemoApp.swift in Sources */,
 				A1000000000000000000000E /* LocalGemmaModelStore.swift in Sources */,
@@ -208,6 +211,11 @@
 				A10000000000000000000013 /* DemoModelRoute.swift in Sources */,
 				A10000000000000000000014 /* DemoProviderKind.swift in Sources */,
 				A10000000000000000000015 /* DemoScenarioMetadata.swift in Sources */,
+				A10000000000000000000016 /* DemoViewModel.swift in Sources */,
+				A10000000000000000000017 /* GeminiAvailabilityView.swift in Sources */,
+				A10000000000000000000018 /* LocalGemmaProvisioningView.swift in Sources */,
+				A10000000000000000000019 /* ScenarioDetailBlock.swift in Sources */,
+				A1000000000000000000001A /* ScenarioDetailsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -265,6 +273,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Configurations/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.lolkthxbai.SwiftMendDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -285,6 +294,7 @@
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Configurations/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.lolkthxbai.SwiftMendDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";

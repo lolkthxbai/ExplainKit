@@ -13,10 +13,6 @@ struct DiagnosticRecoveryModelProvider: RecoveryModelProviding {
         self.providerKind = providerKind
     }
 
-    init(wrapping provider: any RecoveryModelProviding) {
-        self.init(wrapping: provider, providerKind: .hostedGemma)
-    }
-
     func recoveryAdvice(for request: RecoveryModelRequest) async throws -> RecoveryAdvice {
         do {
             return try await provider.recoveryAdvice(for: request)

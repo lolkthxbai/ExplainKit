@@ -15,13 +15,4 @@ enum DemoModelRoute: Equatable, Sendable {
             .deterministic
         }
     }
-
-    var usesConfiguredProvider: Bool {
-        switch self {
-        case .gemini, .localGemma:
-            true
-        case .simulatedUnavailable, .simulatedInvalidResponse, .none:
-            false
-        }
-    }
 }
