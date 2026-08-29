@@ -190,10 +190,15 @@ let provider = try await LocalGemmaRecoveryModelProvider.load(
 ```
 
 Loading verifies the pinned file size and SHA-256 digest before initializing
-LiteRT-LM. Generation uses greedy decoding and a JSON schema whose action-ID
-enum comes from the developer's catalog. The provider then performs the same
-canonical action mapping as the hosted provider, while `RecoveryEngine` remains
-the final enforcement and fallback boundary.
+LiteRT-LM. Generation uses deterministic top-k-1 decoding, which is equivalent
+to greedy argmax selection while remaining compatible with LiteRT-LM 0.16. The
+JSON schema's action-ID enum comes from the developer's catalog. The provider
+then performs the same canonical action mapping as the hosted provider, while
+`RecoveryEngine` remains the final enforcement and fallback boundary.
+
+The macOS baseline uses the GPU backend. LiteRT-LM 0.16's packaged XNNPACK
+executor does not implement the explicit deterministic sampler used by this
+provider, so CPU runs are not comparable baseline measurements.
 
 The Swift package links the official LiteRT-LM 0.16.0 release XCFrameworks
 directly. This avoids a Git LFS packaging problem in that release's Swift

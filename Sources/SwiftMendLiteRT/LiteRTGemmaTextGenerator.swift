@@ -61,10 +61,13 @@ final class LiteRTGemmaTextGenerator: @unchecked Sendable, LocalGemmaTextGenerat
         defer { litert_lm_session_config_delete(sessionConfiguration) }
         litert_lm_session_config_set_apply_prompt_template(sessionConfiguration, true)
 
-        guard let sampler = litert_lm_sampler_params_create(kLiteRtLmSamplerTypeGreedy) else {
+        // LiteRT-LM 0.16 does not implement its Greedy sampler on every backend.
+        // Top-k with k = 1 is the same deterministic argmax selection.
+        guard let sampler = litert_lm_sampler_params_create(kLiteRtLmSamplerTypeTopK) else {
             throw LocalGemmaProviderError.generationFailed
         }
         defer { litert_lm_sampler_params_delete(sampler) }
+        litert_lm_sampler_params_set_top_k(sampler, 1)
         litert_lm_session_config_set_sampler_params(sessionConfiguration, sampler)
 
         guard let conversationConfiguration = litert_lm_conversation_config_create() else {
@@ -76,10 +79,7 @@ final class LiteRTGemmaTextGenerator: @unchecked Sendable, LocalGemmaTextGenerat
             sessionConfiguration
         )
 
-        let systemMessage = try Self.messageJSON(
-            role: "system",
-            text: request.systemInstruction
-        )
+        let systemMessage = try Self.systemContentJSON(text: request.systemInstruction)
         litert_lm_conversation_config_set_system_message(
             conversationConfiguration,
             systemMessage
@@ -243,7 +243,15 @@ final class LiteRTGemmaTextGenerator: @unchecked Sendable, LocalGemmaTextGenerat
         return json
     }
 
-    private static func responseSchemaJSON(
+    static func systemContentJSON(text: String) throws -> String {
+        let data = try JSONEncoder().encode(text)
+        guard let json = String(data: data, encoding: .utf8) else {
+            throw LocalGemmaProviderError.generationFailed
+        }
+        return json
+    }
+
+    static func responseSchemaJSON(
         approvedActionIDs: [String]
     ) throws -> String {
         let schema: [String: Any] = [
@@ -255,7 +263,6 @@ final class LiteRTGemmaTextGenerator: @unchecked Sendable, LocalGemmaTextGenerat
                     "type": "array",
                     "minItems": 1,
                     "maxItems": 3,
-                    "uniqueItems": true,
                     "items": [
                         "type": "string",
                         "enum": approvedActionIDs

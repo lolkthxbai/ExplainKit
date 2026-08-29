@@ -113,6 +113,34 @@ struct LocalGemmaRecoveryModelProviderTests {
         #expect(model.parameterCount == 1_000_000_000)
     }
 
+    @Test("The C bridge receives system content rather than a nested message")
+    func systemContentPayloadMatchesConversationAPI() throws {
+        let instruction = "Return approved recovery action IDs only."
+
+        let payload = try LiteRTGemmaTextGenerator.systemContentJSON(text: instruction)
+        let decoded = try JSONDecoder().decode(String.self, from: Data(payload.utf8))
+
+        #expect(decoded == instruction)
+    }
+
+    @Test("The local JSON schema uses only supported LLGuidance keywords")
+    func constrainedSchemaIsLiteRTCompatible() throws {
+        let payload = try LiteRTGemmaTextGenerator.responseSchemaJSON(
+            approvedActionIDs: approvedActions.map(\.id)
+        )
+        let root = try #require(
+            JSONSerialization.jsonObject(with: Data(payload.utf8)) as? [String: Any]
+        )
+        let properties = try #require(root["properties"] as? [String: Any])
+        let actionIDs = try #require(properties["actionIDs"] as? [String: Any])
+        let items = try #require(actionIDs["items"] as? [String: Any])
+
+        #expect(actionIDs["uniqueItems"] == nil)
+        #expect(actionIDs["minItems"] as? Int == 1)
+        #expect(actionIDs["maxItems"] as? Int == 3)
+        #expect(items["enum"] as? [String] == approvedActions.map(\.id))
+    }
+
     @Test("Missing model artifacts fail before LiteRT initialization")
     func missingModelFailsBeforeInitialization() async throws {
         let temporaryDirectory = try makeTemporaryDirectory()
