@@ -2,7 +2,9 @@
 
 This directory contains the reproducible, gated experiment for testing whether a specialized Gemma 3 270M model can replace the 1B local baseline. The 270M model is not the default and must not be shipped unless it passes the comparison gate on the same held-out scenarios.
 
-The model repositories are license-gated. Accept the Gemma license on Hugging Face and provide `HF_TOKEN` only in the training environment; never add it to this repository.
+The model repositories are license-gated. Accept the Gemma license on Hugging
+Face and authenticate with `hf auth login` or provide `HF_TOKEN` only in the
+training environment; never add a token to this repository.
 
 ## 1. Export the versioned data
 
@@ -15,7 +17,7 @@ The default v2 dataset exports 42 training and 14 validation records across all
 seven categories. Its 14 test records stay held out. V1 remains bundled so old
 results can be reproduced, but it is not the default training source.
 
-## 2. Train the adapter on a CUDA machine
+## 2. Train the adapter
 
 Use a managed CUDA image such as Kaggle or Colab with PyTorch already matched
 to its CUDA runtime. The requirements keep that installed PyTorch when it is
@@ -29,20 +31,53 @@ python -m pip install -r Training/requirements.txt
 HF_TOKEN=... python Training/finetune_gemma_270m.py \
   --training-data /tmp/swiftmend-train.jsonl \
   --validation-data /tmp/swiftmend-validation.jsonl \
-  --output /tmp/swiftmend-gemma-270m
+  --output /tmp/swiftmend-gemma-270m \
+  --device cuda
 ```
 
-The script pins `google/gemma-3-270m-it` to a specific revision, saves the LoRA adapter and merged weights, and records dataset hashes in `training-manifest.json`.
+Apple silicon can run the same LoRA experiment locally through PyTorch MPS.
+MPS training uses float32 because mixed-precision support differs from CUDA:
+
+```sh
+python3.12 -m venv /tmp/swiftmend-training-venv
+. /tmp/swiftmend-training-venv/bin/activate
+python -m pip install -r Training/requirements.txt
+python Training/finetune_gemma_270m.py \
+  --training-data /tmp/swiftmend-train.jsonl \
+  --validation-data /tmp/swiftmend-validation.jsonl \
+  --output /tmp/swiftmend-gemma-270m \
+  --device mps
+```
+
+The script pins `google/gemma-3-270m-it` to a specific revision, saves the LoRA
+adapter and merged weights, and records the dataset hashes, accelerator,
+training backend, operating system, architecture, and package versions in
+`training-manifest.json`. `--device auto` prefers CUDA and then MPS.
 
 ## 3. Convert the merged model to LiteRT-LM
 
+Download `tokenizer.model` from the same pinned Gemma revision used for
+training. The text-only checkpoint reports `gemma3_text`, which LiteRT-Torch
+does not recognize as a model type, and its default JSON tokenizer cannot be
+used by LiteRT-LM 0.16 constrained decoding. Both overrides are required:
+
 ```sh
-uv tool install litert-torch-nightly
+uv tool install litert-torch==0.9.4
 litert-torch export_hf \
   --model=/tmp/swiftmend-gemma-270m/merged \
   --output_dir=/tmp/swiftmend-gemma-270m/litert \
-  --externalize_embedder
+  --externalize_embedder \
+  --litert_lm_model_type_override=gemma3 \
+  --tokenizer_path_override=/path/to/pinned/tokenizer.model
 ```
+
+The 2026-08-29 local run is blocked at this boundary. The merged PyTorch model
+produced valid, accurate recovery actions for 13 of 14 held-out scenarios on
+MPS. The LiteRT-LM artifact produced by LiteRT-Torch 0.9.4 emitted only
+`<pad>` with both the Swift benchmark and the `litert-lm` 0.16.1 CLI. The
+same day's nightly converter, 0.10.0.dev20260829, could not package against
+the published `litert-lm-builder` 0.16.1 schema. Do not treat either converted
+artifact as a candidate or switch the app away from the verified 1B model.
 
 Create an immutable descriptor for the exact converted artifact. Replace the
 revision placeholder with the SHA-256 printed for `training-manifest.json`:
