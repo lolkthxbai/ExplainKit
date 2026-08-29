@@ -62,22 +62,25 @@ does not recognize as a model type, and its default JSON tokenizer cannot be
 used by LiteRT-LM 0.16 constrained decoding. Both overrides are required:
 
 ```sh
-uv tool install litert-torch==0.9.4
-litert-torch export_hf \
-  --model=/tmp/swiftmend-gemma-270m/merged \
-  --output_dir=/tmp/swiftmend-gemma-270m/litert \
-  --externalize_embedder \
-  --litert_lm_model_type_override=gemma3 \
-  --tokenizer_path_override=/path/to/pinned/tokenizer.model
+uv run --python 3.12 --with litert-torch==0.9.4 \
+  python Training/export_gemma_270m_litert.py \
+  --model /tmp/swiftmend-gemma-270m/merged \
+  --tokenizer /path/to/pinned/tokenizer.model \
+  --output /tmp/swiftmend-gemma-270m/litert
 ```
 
-The 2026-08-29 local run is blocked at this boundary. The merged PyTorch model
-produced valid, accurate recovery actions for 13 of 14 held-out scenarios on
-MPS. The LiteRT-LM artifact produced by LiteRT-Torch 0.9.4 emitted only
-`<pad>` with both the Swift benchmark and the `litert-lm` 0.16.1 CLI. The
-same day's nightly converter, 0.10.0.dev20260829, could not package against
-the published `litert-lm-builder` 0.16.1 schema. Do not treat either converted
-artifact as a candidate or switch the app away from the verified 1B model.
+The helper calls the converter through Python so `externalize_embedder=False`
+is passed as a Boolean rather than command-line text. It also applies the
+Gemma 270M key/value cache dimensions and a verified stop policy containing
+only `<end_of_turn>` and EOS token 1. The checkpoint's generation configuration
+also names token 106 as EOS; accepting that token as an unconditional runtime
+stop allowed LiteRT-LM to terminate constrained JSON one character before the
+closing brace. The explicit metadata keeps validation fail-closed instead of
+repairing malformed model output.
+
+The resulting graph is verified on the macOS CPU backend. LiteRT-LM's Apple GPU
+path still emits only `<pad>` for this converted artifact, so do not configure
+the 270M candidate with `--backend gpu`.
 
 Create an immutable descriptor for the exact converted artifact. Replace the
 revision placeholder with the SHA-256 printed for `training-manifest.json`:
@@ -99,20 +102,21 @@ LiteRT-LM version, and backend:
 swift run SwiftMendBenchmark \
   --model /path/to/gemma3-1b-it-int4.litertlm \
   --split test \
-  --backend gpu \
+  --backend cpu \
   --output /tmp/swiftmend-1b-report.json
 
 swift run SwiftMendBenchmark \
   --model /tmp/swiftmend-gemma-270m/litert/model.litertlm \
   --manifest /tmp/swiftmend-gemma-270m/model-manifest.json \
   --split test \
-  --backend gpu \
+  --backend cpu \
   --output /tmp/swiftmend-270m-report.json
 ```
 
 Each report embeds the artifact digest and execution environment. The
 comparison tool refuses mismatched environments, identical artifacts, or model
-roles other than a 1B baseline and 270M candidate.
+roles other than a 1B baseline and 270M candidate. Use `--cpu-threads` when an
+exact CPU thread count needs to be part of the recorded environment.
 
 ## 4. Apply an explicit comparison tolerance
 
@@ -127,4 +131,11 @@ swift run SwiftMendCompare \
   --max-memory-ratio <agreed-ratio>
 ```
 
-There are deliberately no default tolerances. A switch requires an explicit product decision and a passing report.
+There are deliberately no default tolerances. The 2026-08-29 local reports
+passed the strictest no-regression values: zero accuracy or JSON loss, zero
+fallback increase, and latency and memory ratios of 1.0. The 270M candidate
+scored 100% recovery accuracy and valid JSON with zero fallback; the 1B
+baseline scored 21.4%, 92.9%, and 7.1%, respectively. The 270M p95 latency was
+1.70 seconds versus 4.26 seconds, and peak memory was 1,883 MiB versus
+2,844 MiB.
+A default-model switch still requires an explicit product decision.
