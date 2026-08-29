@@ -23,6 +23,11 @@
 		A1000000000000000000000E /* LocalGemmaModelStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* LocalGemmaModelStore.swift */; };
 		A1000000000000000000000F /* LocalGemmaModelCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* LocalGemmaModelCoordinator.swift */; };
 		A10000000000000000000010 /* SwiftMendLiteRT in Frameworks */ = {isa = PBXBuildFile; productRef = A90000000000000000000003 /* SwiftMendLiteRT */; };
+		A10000000000000000000011 /* DemoExampleGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* DemoExampleGroup.swift */; };
+		A10000000000000000000012 /* DemoFailureRecoveryModelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* DemoFailureRecoveryModelProvider.swift */; };
+		A10000000000000000000013 /* DemoModelRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* DemoModelRoute.swift */; };
+		A10000000000000000000014 /* DemoProviderKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* DemoProviderKind.swift */; };
+		A10000000000000000000015 /* DemoScenarioMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* DemoScenarioMetadata.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +49,11 @@
 		A20000000000000000000010 /* Secrets.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig.example; sourceTree = "<group>"; };
 		A20000000000000000000011 /* LocalGemmaModelStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalGemmaModelStore.swift; sourceTree = "<group>"; };
 		A20000000000000000000012 /* LocalGemmaModelCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalGemmaModelCoordinator.swift; sourceTree = "<group>"; };
+		A20000000000000000000013 /* DemoExampleGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoExampleGroup.swift; sourceTree = "<group>"; };
+		A20000000000000000000014 /* DemoFailureRecoveryModelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoFailureRecoveryModelProvider.swift; sourceTree = "<group>"; };
+		A20000000000000000000015 /* DemoModelRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoModelRoute.swift; sourceTree = "<group>"; };
+		A20000000000000000000016 /* DemoProviderKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoProviderKind.swift; sourceTree = "<group>"; };
+		A20000000000000000000017 /* DemoScenarioMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoScenarioMetadata.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,6 +95,11 @@
 				A2000000000000000000000C /* SwiftMendDemoApp.swift */,
 				A20000000000000000000011 /* LocalGemmaModelStore.swift */,
 				A20000000000000000000012 /* LocalGemmaModelCoordinator.swift */,
+				A20000000000000000000013 /* DemoExampleGroup.swift */,
+				A20000000000000000000014 /* DemoFailureRecoveryModelProvider.swift */,
+				A20000000000000000000015 /* DemoModelRoute.swift */,
+				A20000000000000000000016 /* DemoProviderKind.swift */,
+				A20000000000000000000017 /* DemoScenarioMetadata.swift */,
 			);
 			name = "Shared Demo Sources";
 			path = ../../Sources/SwiftMendDemo;
@@ -188,6 +203,11 @@
 				A1000000000000000000000C /* SwiftMendDemoApp.swift in Sources */,
 				A1000000000000000000000E /* LocalGemmaModelStore.swift in Sources */,
 				A1000000000000000000000F /* LocalGemmaModelCoordinator.swift in Sources */,
+				A10000000000000000000011 /* DemoExampleGroup.swift in Sources */,
+				A10000000000000000000012 /* DemoFailureRecoveryModelProvider.swift in Sources */,
+				A10000000000000000000013 /* DemoModelRoute.swift in Sources */,
+				A10000000000000000000014 /* DemoProviderKind.swift in Sources */,
+				A10000000000000000000015 /* DemoScenarioMetadata.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

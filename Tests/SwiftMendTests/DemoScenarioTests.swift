@@ -9,65 +9,129 @@ struct DemoScenarioTests {
         category: "demo"
     )
 
-    @Test("Password scenario resolves through its approved rule")
-    func passwordScenarioUsesRule() async {
-        let outcome = await DemoScenario.passwordRejected.run(using: source)
-
-        #expect(outcome.snapshot.domain == "DemoAuth")
-        #expect(outcome.advice.title == "Choose a stronger password")
-        #expect(outcome.advice.actions.map(\.id) == ["edit-password"])
-        #expect(outcome.source == .developerRule(id: "password-policy"))
+    @Test("Example groups and scenarios have an explicit presentation order")
+    func groupsHaveExactOrder() {
+        #expect(DemoExampleGroup.allCases == [.gemini, .onDeviceGemma, .deterministic])
+        #expect(DemoExampleGroup.gemini.scenarios == [
+            .checkoutInventoryChanged,
+            .storePickupUnavailable
+        ])
+        #expect(DemoExampleGroup.onDeviceGemma.scenarios == [
+            .photoUploadTooLarge,
+            .deviceStorageFull
+        ])
+        #expect(DemoExampleGroup.deterministic.scenarios == [
+            .noInternet,
+            .invalidModelResponse,
+            .passwordRejected
+        ])
+        #expect(DemoExampleGroup.allCases.flatMap(\.scenarios) == DemoScenario.allCases)
     }
 
-    @Test("Offline scenario resolves through local fallback")
-    func offlineScenarioUsesFallback() async {
-        let outcome = await DemoScenario.noInternet.run(using: source)
-
-        #expect(outcome.snapshot.code == -1009)
-        #expect(outcome.advice.title == "Reconnect to the internet")
-        #expect(outcome.advice.actions.count == 3)
-        #expect(outcome.source == .fallback)
+    @Test("Every scenario exposes truthful presentation and routing metadata")
+    func scenarioMetadataIsExact() {
+        #expect(DemoScenario.checkoutInventoryChanged.metadata == DemoScenarioMetadata(
+            group: .gemini,
+            exampleType: .geminiModel,
+            errorType: "Checkout error",
+            symbol: "cart.badge.exclamationmark",
+            fallbackTrigger: nil,
+            modelRoute: .gemini
+        ))
+        #expect(DemoScenario.storePickupUnavailable.metadata.group == .gemini)
+        #expect(DemoScenario.storePickupUnavailable.errorType == "Pickup availability error")
+        #expect(DemoScenario.storePickupUnavailable.modelRoute == .gemini)
+        #expect(DemoScenario.photoUploadTooLarge.metadata.group == .onDeviceGemma)
+        #expect(DemoScenario.photoUploadTooLarge.modelRoute == .localGemma)
+        #expect(DemoScenario.deviceStorageFull.errorType == "Storage error")
+        #expect(DemoScenario.deviceStorageFull.modelRoute == .localGemma)
+        #expect(DemoScenario.noInternet.fallbackTrigger == .noInternet)
+        #expect(DemoScenario.noInternet.errorType == "Connectivity error")
+        #expect(DemoScenario.noInternet.modelRoute == .simulatedUnavailable)
+        #expect(DemoScenario.invalidModelResponse.fallbackTrigger == .invalidModelResponse)
+        #expect(DemoScenario.invalidModelResponse.errorType == "Sync error")
+        #expect(DemoScenario.invalidModelResponse.modelRoute == .simulatedInvalidResponse)
+        #expect(DemoScenario.passwordRejected.modelRoute == .none)
     }
 
     @Test(
-        "Gemma scenarios use model advice constrained to canonical actions",
-        arguments: [DemoScenario.liveGemmaStorePickup, .liveGemmaPhotoUpload]
+        "Configured model scenarios preserve their route and canonical action catalog",
+        arguments: [
+            DemoScenario.checkoutInventoryChanged,
+            .storePickupUnavailable,
+            .photoUploadTooLarge,
+            .deviceStorageFull
+        ]
     )
-    func gemmaScenariosUseConstrainedModelAdvice(scenario: DemoScenario) async throws {
+    func configuredModelScenariosUseCanonicalActions(
+        scenario: DemoScenario
+    ) async throws {
         let approvedAction = try #require(scenario.approvedModelActions.first)
         let provider = CapturingDemoProvider(
             advice: RecoveryAdvice(
                 title: "Model explanation",
-                message: "Choose one of the available recovery options.",
-                actions: [RecoveryAction(id: approvedAction.id, title: "Model changed the title")]
+                message: "Choose one of the approved recovery options.",
+                actions: [
+                    RecoveryAction(
+                        id: approvedAction.id,
+                        title: "Model changed this title"
+                    )
+                ]
             )
         )
 
         let outcome = await scenario.run(using: source, modelProvider: provider)
         let request = try #require(await provider.request)
 
+        #expect(request.approvedActions == scenario.approvedModelActions)
         #expect(outcome.advice.actions == [approvedAction])
         #expect(outcome.source == .model)
-        #expect(request.approvedActions == scenario.approvedModelActions)
+        #expect(outcome.providerKind == scenario.modelRoute.expectedProviderKind)
     }
 
-    @Test(
-        "Gemma scenarios use local fallbacks when the provider is unavailable",
-        arguments: [DemoScenario.liveGemmaStorePickup, .liveGemmaPhotoUpload]
-    )
-    func gemmaScenariosFallBack(scenario: DemoScenario) async {
-        let outcome = await scenario.run(
-            using: source,
-            modelProvider: MockRecoveryModelProvider(failingWith: .unavailable)
+    @Test("Checkout inventory scenario uses code 4002 and approved inventory actions")
+    func checkoutInventoryScenarioIsExact() async throws {
+        let provider = CapturingDemoProvider(
+            advice: RecoveryAdvice(
+                title: "Update checkout",
+                message: "Choose another available option.",
+                actions: [
+                    RecoveryAction(
+                        id: "choose-in-stock-store",
+                        title: "Untrusted title"
+                    )
+                ]
+            )
         )
 
-        #expect(outcome.source == .fallback)
-        #expect(outcome.advice.actions.isEmpty == false)
+        let outcome = await DemoScenario.checkoutInventoryChanged.run(
+            using: source,
+            modelProvider: provider
+        )
+        let request = try #require(await provider.request)
+
+        #expect(outcome.snapshot.domain == "DemoCheckout")
+        #expect(outcome.snapshot.code == 4002)
+        #expect(request.context.feature == "checkout")
+        #expect(request.approvedActions == [
+            RecoveryAction(
+                id: "choose-in-stock-store",
+                title: "Choose a store with in-stock availability"
+            ),
+            RecoveryAction(
+                id: "choose-different-color",
+                title: "Choose a different item color"
+            ),
+            RecoveryAction(
+                id: "notify-when-available",
+                title: "Notify me when it is back in stock"
+            )
+        ])
     }
 
-    @Test("Photo upload sends reviewed size context and its approved action catalog")
+    @Test("Photo upload sends reviewed size context to on-device Gemma")
     func photoUploadRequestContainsReviewedContext() async throws {
-        let scenario = DemoScenario.liveGemmaPhotoUpload
+        let scenario = DemoScenario.photoUploadTooLarge
         let action = try #require(scenario.approvedModelActions.first)
         let provider = CapturingDemoProvider(
             advice: RecoveryAdvice(
@@ -93,35 +157,99 @@ struct DemoScenarioTests {
         ])
     }
 
-    @Test("Only the two hosted scenarios use Gemma")
-    func usesGemmaIdentifiesHostedScenarios() {
-        let gemmaScenarios = DemoScenario.allCases.filter(\.usesGemma)
+    @Test("Storage scenario uses Cocoa code 640 and storage-only actions")
+    func storageScenarioIsExact() async throws {
+        let scenario = DemoScenario.deviceStorageFull
+        let action = try #require(scenario.approvedModelActions.first)
+        let provider = CapturingDemoProvider(
+            advice: RecoveryAdvice(
+                title: "Free up storage",
+                message: "Manage storage before downloading.",
+                actions: [action]
+            )
+        )
 
-        #expect(gemmaScenarios == [.liveGemmaStorePickup, .liveGemmaPhotoUpload])
-        #expect(DemoScenario.passwordRejected.usesGemma == false)
-        #expect(DemoScenario.noInternet.usesGemma == false)
+        let outcome = await scenario.run(using: source, modelProvider: provider)
+
+        #expect(outcome.snapshot.domain == NSCocoaErrorDomain)
+        #expect(outcome.snapshot.code == 640)
+        #expect(scenario.approvedModelActions == [
+            RecoveryAction(id: "manage-storage", title: "Manage device storage"),
+            RecoveryAction(id: "cancel-download", title: "Cancel download")
+        ])
     }
 
-    @Test("Demo configuration detects the API key without calling the network")
-    func configurationDetectsAPIKey() {
-        let configured = DemoConfiguration(environment: ["GEMINI_API_KEY": "test-api-key"])
-        let bundleConfigured = DemoConfiguration(environment: [:], bundleAPIKey: "test-bundle-key")
-        let missing = DemoConfiguration(environment: [:], bundleAPIKey: nil)
+    @Test(
+        "Deterministic failure scenarios ignore configured providers and use fallback",
+        arguments: [DemoScenario.noInternet, .invalidModelResponse]
+    )
+    func deterministicFailuresUseFallback(scenario: DemoScenario) async {
+        let unusedProvider = CountingDemoProvider()
 
-        #expect(configured.isLiveGemmaConfigured)
-        #expect(bundleConfigured.isLiveGemmaConfigured)
-        #expect(missing.isLiveGemmaConfigured == false)
+        let outcome = await scenario.run(
+            using: source,
+            modelProvider: unusedProvider
+        )
+
+        #expect(await unusedProvider.requestCount == 0)
+        #expect(outcome.source == .fallback)
+        #expect(outcome.providerKind == .deterministic)
+        #expect(outcome.advice.actions.isEmpty == false)
     }
 
-    @Test("Gemma provider failures are classified into safe diagnostics")
-    func gemmaProviderFailuresAreClassified() {
+    @Test("Unavailable-provider scenario represents the no-internet error")
+    func unavailableProviderScenarioIsExact() async {
+        let outcome = await DemoScenario.noInternet.run(using: source)
+
+        #expect(outcome.snapshot.domain == NSURLErrorDomain)
+        #expect(outcome.snapshot.code == NSURLErrorNotConnectedToInternet)
+        #expect(outcome.advice.title == "Reconnect to the internet")
+        #expect(outcome.source == .fallback)
+    }
+
+    @Test("Insufficient model output is rejected in favor of deterministic advice")
+    func invalidResponseScenarioUsesFallback() async {
+        let outcome = await DemoScenario.invalidModelResponse.run(using: source)
+
+        #expect(outcome.snapshot.domain == "DemoService")
+        #expect(outcome.snapshot.code == 1514)
+        #expect(outcome.snapshot.message == "Changes could not be synchronized.")
+        #expect(outcome.advice.title == "Review conflicting changes")
+        #expect(outcome.advice.actions.map(\.id) == [
+            "review-changes",
+            "keep-device-copy",
+            "keep-server-copy"
+        ])
+        #expect(outcome.source == .fallback)
+    }
+
+    @Test("Password scenario resolves through its approved rule")
+    func passwordScenarioUsesRule() async {
+        let outcome = await DemoScenario.passwordRejected.run(using: source)
+
+        #expect(outcome.snapshot.domain == "DemoAuth")
+        #expect(outcome.snapshot.code == 1001)
+        #expect(outcome.advice.title == "Choose a stronger password")
+        #expect(outcome.advice.actions == [
+            RecoveryAction(id: "edit-password", title: "Edit password")
+        ])
+        #expect(outcome.source == .developerRule(id: "password-policy"))
+        #expect(outcome.providerKind == .deterministic)
+    }
+
+    @Test("Gemini and Gemma provider errors share safe failure categories")
+    func providerFailuresAreClassified() {
         #expect(DemoModelFailure(error: GemmaProviderError.invalidConfiguration) == .invalidConfiguration)
         #expect(DemoModelFailure(error: GemmaProviderError.invalidRequest) == .invalidRequest)
         #expect(DemoModelFailure(error: GemmaProviderError.invalidResponse) == .invalidResponse)
         #expect(DemoModelFailure(error: GemmaProviderError.httpStatus(404)) == .httpStatus(404))
+        #expect(DemoModelFailure(error: GeminiProviderError.invalidConfiguration) == .invalidConfiguration)
+        #expect(DemoModelFailure(error: GeminiProviderError.invalidRequest) == .invalidRequest)
+        #expect(DemoModelFailure(error: GeminiProviderError.invalidResponse) == .invalidResponse)
+        #expect(DemoModelFailure(error: GeminiProviderError.httpStatus(429)) == .httpStatus(429))
     }
 
-    @Test("Transport and unexpected failures are classified without their descriptions")
+    @Test("Transport and unexpected failures omit error descriptions")
     func nonProviderFailuresAreClassified() {
         #expect(DemoModelFailure(error: URLError(.notConnectedToInternet)) == .transport(-1009))
         #expect(DemoModelFailure(error: DemoTestError.unexpected) == .unexpected)
@@ -139,6 +267,19 @@ private actor CapturingDemoProvider: RecoveryModelProviding {
     func recoveryAdvice(for request: RecoveryModelRequest) async throws -> RecoveryAdvice {
         self.request = request
         return advice
+    }
+}
+
+private actor CountingDemoProvider: RecoveryModelProviding {
+    private(set) var requestCount = 0
+
+    func recoveryAdvice(for request: RecoveryModelRequest) async throws -> RecoveryAdvice {
+        requestCount += 1
+        return RecoveryAdvice(
+            title: "Unused",
+            message: "This provider should not be called.",
+            actions: [RecoveryAction(id: "retry", title: "Try again")]
+        )
     }
 }
 
