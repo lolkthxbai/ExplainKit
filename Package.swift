@@ -55,8 +55,14 @@ let package = Package(
             name: "SwiftMendModelTool",
             dependencies: ["SwiftMendLiteRT"]
         ),
-        .executableTarget(name: "SwiftMendDemo", dependencies: ["SwiftMend"]),
-        .testTarget(name: "SwiftMendTests", dependencies: ["SwiftMend", "SwiftMendDemo"]),
+        .executableTarget(
+            name: "SwiftMendDemo",
+            dependencies: ["SwiftMend", "SwiftMendLiteRT"]
+        ),
+        .testTarget(
+            name: "SwiftMendTests",
+            dependencies: ["SwiftMend", "SwiftMendDemo", "SwiftMendLiteRT"]
+        ),
         .testTarget(
             name: "SwiftMendLiteRTTests",
             dependencies: ["SwiftMend", "SwiftMendLiteRT"]

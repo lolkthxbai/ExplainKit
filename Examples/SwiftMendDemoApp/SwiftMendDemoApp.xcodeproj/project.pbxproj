@@ -20,6 +20,9 @@
 		A1000000000000000000000B /* ScenarioCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* ScenarioCard.swift */; };
 		A1000000000000000000000C /* SwiftMendDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* SwiftMendDemoApp.swift */; };
 		A1000000000000000000000D /* SwiftMend in Frameworks */ = {isa = PBXBuildFile; productRef = A90000000000000000000002 /* SwiftMend */; };
+		A1000000000000000000000E /* LocalGemmaModelStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* LocalGemmaModelStore.swift */; };
+		A1000000000000000000000F /* LocalGemmaModelCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* LocalGemmaModelCoordinator.swift */; };
+		A10000000000000000000010 /* SwiftMendLiteRT in Frameworks */ = {isa = PBXBuildFile; productRef = A90000000000000000000003 /* SwiftMendLiteRT */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +42,8 @@
 		A2000000000000000000000E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A2000000000000000000000F /* Demo.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Demo.xcconfig; sourceTree = "<group>"; };
 		A20000000000000000000010 /* Secrets.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig.example; sourceTree = "<group>"; };
+		A20000000000000000000011 /* LocalGemmaModelStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalGemmaModelStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000012 /* LocalGemmaModelCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalGemmaModelCoordinator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,6 +52,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000000000000000000000D /* SwiftMend in Frameworks */,
+				A10000000000000000000010 /* SwiftMendLiteRT in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -77,6 +83,8 @@
 				A2000000000000000000000A /* RecoveryAdviceView.swift */,
 				A2000000000000000000000B /* ScenarioCard.swift */,
 				A2000000000000000000000C /* SwiftMendDemoApp.swift */,
+				A20000000000000000000011 /* LocalGemmaModelStore.swift */,
+				A20000000000000000000012 /* LocalGemmaModelCoordinator.swift */,
 			);
 			name = "Shared Demo Sources";
 			path = ../../Sources/SwiftMendDemo;
@@ -118,6 +126,7 @@
 			name = SwiftMendDemoApp;
 			packageProductDependencies = (
 				A90000000000000000000002 /* SwiftMend */,
+				A90000000000000000000003 /* SwiftMendLiteRT */,
 			);
 			productName = SwiftMendDemoApp;
 			productReference = A2000000000000000000000D /* SwiftMendDemoApp.app */;
@@ -177,6 +186,8 @@
 				A1000000000000000000000A /* RecoveryAdviceView.swift in Sources */,
 				A1000000000000000000000B /* ScenarioCard.swift in Sources */,
 				A1000000000000000000000C /* SwiftMendDemoApp.swift in Sources */,
+				A1000000000000000000000E /* LocalGemmaModelStore.swift in Sources */,
+				A1000000000000000000000F /* LocalGemmaModelCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -300,6 +311,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A90000000000000000000001 /* XCLocalSwiftPackageReference "../.." */;
 			productName = SwiftMend;
+		};
+		A90000000000000000000003 /* SwiftMendLiteRT */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A90000000000000000000001 /* XCLocalSwiftPackageReference "../.." */;
+			productName = SwiftMendLiteRT;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
