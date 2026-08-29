@@ -17,6 +17,8 @@ enum DemoResolutionLogger {
         switch modelFailure {
         case .invalidConfiguration:
             logger.error("Gemma request failed kind=invalid-configuration")
+        case .invalidRequest:
+            logger.error("Gemma request failed kind=invalid-request")
         case .invalidResponse:
             logger.error("Gemma request failed kind=invalid-response")
         case .httpStatus(let statusCode):

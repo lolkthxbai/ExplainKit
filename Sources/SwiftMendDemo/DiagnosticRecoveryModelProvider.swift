@@ -8,12 +8,9 @@ struct DiagnosticRecoveryModelProvider: RecoveryModelProviding {
         self.provider = provider
     }
 
-    func recoveryAdvice(
-        for snapshot: ErrorSnapshot,
-        context: RecoveryContext
-    ) async throws -> RecoveryAdvice {
+    func recoveryAdvice(for request: RecoveryModelRequest) async throws -> RecoveryAdvice {
         do {
-            return try await provider.recoveryAdvice(for: snapshot, context: context)
+            return try await provider.recoveryAdvice(for: request)
         } catch {
             DemoResolutionLogger.record(modelFailure: DemoModelFailure(error: error))
             throw error
@@ -23,6 +20,7 @@ struct DiagnosticRecoveryModelProvider: RecoveryModelProviding {
 
 enum DemoModelFailure: Equatable, Sendable {
     case invalidConfiguration
+    case invalidRequest
     case invalidResponse
     case httpStatus(Int)
     case transport(Int)
@@ -32,6 +30,8 @@ enum DemoModelFailure: Equatable, Sendable {
         switch error {
         case GemmaProviderError.invalidConfiguration:
             self = .invalidConfiguration
+        case GemmaProviderError.invalidRequest:
+            self = .invalidRequest
         case GemmaProviderError.invalidResponse:
             self = .invalidResponse
         case GemmaProviderError.httpStatus(let statusCode):
