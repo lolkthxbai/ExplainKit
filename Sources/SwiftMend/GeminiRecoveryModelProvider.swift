@@ -1,8 +1,8 @@
 import Foundation
 
-/// A hosted Gemma provider backed by the Gemini API `generateContent` endpoint.
-public struct GemmaRecoveryModelProvider: RecoveryModelProviding {
-    public static let defaultModel = "gemma-4-26b-a4b-it"
+/// A hosted Gemini provider backed by the Gemini API `generateContent` endpoint.
+public struct GeminiRecoveryModelProvider: RecoveryModelProviding {
+    public static let defaultModel = "gemini-3.7-flash"
 
     private let provider: GoogleGenerateContentRecoveryProvider
 
@@ -19,12 +19,12 @@ public struct GemmaRecoveryModelProvider: RecoveryModelProviding {
             provider = try GoogleGenerateContentRecoveryProvider(
                 apiKey: apiKey,
                 model: model,
-                family: .gemma,
-                options: .gemma,
+                family: .gemini,
+                options: .gemini,
                 client: client
             )
         } catch let error as GoogleGenerateContentError {
-            throw GemmaProviderError(error)
+            throw GeminiProviderError(error)
         }
     }
 
@@ -32,12 +32,12 @@ public struct GemmaRecoveryModelProvider: RecoveryModelProviding {
         do {
             return try await provider.recoveryAdvice(for: request)
         } catch let error as GoogleGenerateContentError {
-            throw GemmaProviderError(error)
+            throw GeminiProviderError(error)
         }
     }
 }
 
-public enum GemmaProviderError: Error, Equatable, Sendable {
+public enum GeminiProviderError: Error, Equatable, Sendable {
     case invalidConfiguration
     case invalidRequest
     case invalidResponse

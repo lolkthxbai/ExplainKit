@@ -1,6 +1,6 @@
 # SwiftMend
 
-> Safer recovery guidance for Swift app errors, powered by constrained Gemma.
+> Safer recovery guidance for Swift app errors, powered by constrained models and developer policy.
 
 [Watch the 2:52 demo](https://www.youtube.com/watch?v=m3QOL5QlNrk) ·
 [View the Devpost project](https://devpost.com/software/swiftmend) ·
@@ -18,7 +18,7 @@ one to three developer-approved action IDs. It falls back to local advice when
 the provider, catalog, network, API, or response is unavailable or invalid.
 
 <p align="center">
-  <img src="submission-assets/screenshots/iphone-live-gemma.png" width="380" alt="SwiftMend iPhone demo comparing a generic checkout error with constrained Gemma recovery advice">
+  <img src="submission-assets/screenshots/iphone-live-gemma.png" width="380" alt="SwiftMend iPhone demo showing constrained model recovery advice and canonical developer actions">
 </p>
 
 ## Why SwiftMend
@@ -29,9 +29,9 @@ work is easy to postpone and difficult to keep consistent across authentication,
 networking, checkout, uploads, and unexpected edge cases.
 
 SwiftMend keeps developers in control while improving that experience. Exact
-rules take priority, Gemma can explain the long tail of caught errors only by
-selecting approved action IDs, and deterministic local advice remains available
-when model guidance cannot be used.
+rules take priority, Gemini or Gemma can explain the long tail of caught errors
+only by selecting approved action IDs, and deterministic local advice remains
+available when model guidance cannot be used.
 
 ## Architecture
 
@@ -41,7 +41,7 @@ flowchart TD
     B --> C[RecoveryEngine]
     C --> D{Matching developer rule?}
     D -->|Yes| E[Canonical developer advice]
-    D -->|No| F{Gemma and approved actions available?}
+    D -->|No| F{Configured model and approved actions available?}
     F -->|Yes| G[Explanation and approved action IDs]
     G --> H{Response valid?}
     H -->|Yes| I[Canonical developer actions]
@@ -63,8 +63,9 @@ import SwiftMend
 
 ## Integration
 
-Capture an error through [Apple unified logging](https://developer.apple.com/documentation/os/logging),
-then pass the same sanitized snapshot to the recovery engine:
+When the host app catches an error, create a privacy-reviewed diagnostic and
+record it through [Apple unified logging](https://developer.apple.com/documentation/os/logging).
+Pass that same sanitized snapshot to the recovery engine:
 
 ```swift
 let context = RecoveryContext(
@@ -95,9 +96,11 @@ let engine = RecoveryEngine(
 let resolution = await engine.resolve(snapshot, context: context)
 ```
 
-Only pass strings that are safe to display in Console and share with the
-configured model provider. Do not include passwords, tokens, account data, or
-raw server responses.
+`OSLogDiagnosticSource` records app-owned, developer-supplied diagnostic facts;
+it does not scrape arbitrary device or operating-system logs. Only pass strings
+that are safe to display in Console and share with the configured model
+provider. Do not include passwords, tokens, account data, or raw server
+responses.
 
 ## Recovery flow
 
@@ -131,19 +134,35 @@ fallback if validation fails.
 
 ## Demo
 
-The included SwiftUI demo has four flows:
+The included SwiftUI demo presents seven examples in an explicit order:
 
-- Password rejected resolves through a developer-approved rule.
-- No internet resolves through local fallback advice.
-- Store pickup unavailable asks hosted Gemma to explain the error and select
-  only approved delivery or store actions.
-- Photo upload too large sends a reviewed `DemoUpload` error for an 18 MB photo
-  against a 10 MB limit and selects only approved photo recovery actions.
+| Example type | Scenario | Generic error | Developer-approved actions |
+| --- | --- | --- | --- |
+| Gemini Model | Checkout inventory changed | `DemoCheckout · 4002` | Choose a store with in-stock availability; choose a different item color; notify me when it is back in stock |
+| Gemini Model | Store pickup unavailable | `DemoCheckout · 2001` | Select home delivery; choose a different store; try again later |
+| Tuned On-Device Gemma | Photo upload too large | `DemoUpload · 3001` — 18 MB versus a 10 MB limit | Choose a smaller photo; compress photo; try again |
+| Tuned On-Device Gemma | Device storage full | `NSCocoaErrorDomain · 640` | Manage device storage; cancel download |
+| Developer Deterministic Recovery | No internet connection | `NSURLErrorDomain · -1009` | Check Wi-Fi; check cellular data; try again |
+| Developer Deterministic Recovery | Invalid model response | `DemoService · 1514` | Review changes; keep this device’s copy; keep server copy |
+| Developer Deterministic Recovery | Password rejected | `DemoAuth · 1001` | Edit password |
+
+The first two examples route only to `GeminiRecoveryModelProvider`. The next
+two route only to the imported `LocalGemmaRecoveryModelProvider`. The no-internet
+example simulates an unavailable model, the sync example deliberately returns
+an invalid model response, and the password example proves that an exact
+developer rule takes precedence. Missing configuration or rejected model output
+always resolves to the scenario's reviewed local fallback.
+
+Every card uses the same labeled hierarchy: Example Type, Error Type, Generic
+Output, Recovery Source, Recovery Description, Suggested Actions, and, when
+applicable, Fallback Trigger. This makes the model route and fallback behavior
+visible instead of presenting deterministic advice as generated output.
 
 The complete walkthrough is available in the
 [SwiftMend demo video](https://www.youtube.com/watch?v=m3QOL5QlNrk).
 
-For the hosted scenarios, export the key and launch the demo from the same terminal:
+For the two Gemini scenarios, export the key and launch the package demo from
+the same terminal:
 
 ```shell
 export GEMINI_API_KEY="your-key"
@@ -154,39 +173,54 @@ Select **Run Scenario** to compare the original generic error with the recovery
 guidance. Each run also writes its reviewed diagnostic to Apple unified logging
 under subsystem `com.lolkthxbai.SwiftMendDemo` and category `recovery`.
 
-The UI reports whether `GEMINI_API_KEY` is available without displaying or
-logging its value. It also labels every result as a developer rule, Gemma, or
-local fallback. The first two scenarios never call the model.
-
-The hosted scenarios send only reviewed sample diagnostics and their action
-catalogs to Google. They are labeled **Hosted Gemma · approved actions only**.
-The store-pickup diagnostic uses:
-
-- Domain and code: `DemoCheckout`, `2001`
-- Message: `The checkout request could not be completed.`
-- Debug description: `The selected delivery option is temporarily unavailable.`
-- Context: checkout with delivery option `store pickup`
-
-The photo-upload diagnostic uses:
-
-- Domain and code: `DemoUpload`, `3001`
-- Message: `The photo could not be uploaded.`
-- Debug description: `The selected photo exceeds the app's upload limit.`
-- Context: profile photo upload, 18 MB, 10 MB maximum, HEIC
+The UI reports whether `GEMINI_API_KEY` and the tuned local model are available
+without displaying or logging secrets, prompts, or unsafe diagnostics.
+Resolution-status logging records only the scenario, resolution source, and
+provider kind needed to prove routing; diagnostic logging contains only the
+explicitly reviewed fields shown in the demo. The hosted scenarios send only
+reviewed sample diagnostics and their approved-action catalogs to Google.
 
 ### iPhone demo
 
-Open `Examples/SwiftMendDemoApp/SwiftMendDemoApp.xcodeproj`, choose an iPhone Simulator, and run the `SwiftMendDemoApp` scheme. It links the local SwiftMend package and reuses the tested demo scenarios, with a compact comparison layout for iPhone.
+Open `Examples/SwiftMendDemoApp/SwiftMendDemoApp.xcodeproj`, choose an iPhone,
+and run the `SwiftMendDemoApp` scheme. It links the local `SwiftMend` and
+`SwiftMendLiteRT` products and reuses the same demo scenarios.
 
-The deterministic password and no-internet scenarios work without configuration. For hosted Gemma, follow `Examples/SwiftMendDemoApp/README.md`; its local secrets file is ignored by Git.
+The deterministic examples work without configuration. Follow
+[`Examples/SwiftMendDemoApp/README.md`](Examples/SwiftMendDemoApp/README.md) to
+configure the ignored local API key and import the separately obtained tuned
+Gemma artifact.
+
+## Gemini provider
+
+`GeminiRecoveryModelProvider` calls the Gemini API with the current GA
+[`gemini-3.7-flash`](https://ai.google.dev/gemini-api/docs/models/gemini-3.7-flash)
+model by default. It accepts only `gemini-*` model identifiers.
+
+```swift
+let provider = try GeminiRecoveryModelProvider(apiKey: apiKey)
+let engine = RecoveryEngine(
+    rules: approvedRules,
+    fallbackAdvice: offlineFallback,
+    approvedModelActions: approvedActions,
+    modelProvider: provider
+)
+```
+
+The provider requests JSON structured output with low thinking and an
+`actionIDs` enum generated from the approved catalog. It intentionally omits
+the deprecated Gemini 3.x `temperature` and `candidateCount` fields. The
+provider validates the response, maps IDs to canonical developer actions, and
+then `RecoveryEngine` independently validates the result again.
 
 ## Hosted Gemma provider
 
 `GemmaRecoveryModelProvider` accesses Gemma 4 through the
 [Gemini API](https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api). Gemma is
-the model; the Gemini API is the hosted API used to call it. SwiftMend does not
-claim to use a Gemini model. The provider uses `gemma-4-26b-a4b-it` by default
-and accepts another supported Gemma model identifier.
+the model selected by this provider; the Gemini API is the hosted transport.
+This is distinct from `GeminiRecoveryModelProvider`, which selects a Gemini
+model. The Gemma provider uses `gemma-4-26b-a4b-it` by default and accepts only
+`gemma-*` model identifiers.
 
 ```swift
 let provider = try GemmaRecoveryModelProvider(apiKey: apiKey)
@@ -202,16 +236,17 @@ let engine = RecoveryEngine(
 )
 ```
 
-The provider sends the API key in the `x-goog-api-key` header, requests one
-response, and validates the returned `actionIDs` JSON before converting it into
-`RecoveryAdvice` with canonical developer-owned actions. Invalid catalogs,
-invalid output, provider failures, and network failures are discarded by
-`RecoveryEngine` in favor of local fallback advice.
+The Gemini and hosted Gemma providers share an internal Google
+`generateContent` transport while retaining separate public types and model
+families. They send the API key only in the `x-goog-api-key` header. Invalid
+catalogs, invalid output, provider failures, and network failures are discarded
+by `RecoveryEngine` in favor of local fallback advice.
 
 Embedding an API key in a distributed iOS or macOS app is not secure because it
-can be extracted. The direct provider and local secrets file exist only to make
-this proof of concept easy to demonstrate on one machine. Production apps
-should call a developer-controlled backend that owns the key.
+can be extracted. The direct providers and ignored local secrets file exist only
+to make this proof of concept easy to demonstrate on one machine. Production
+apps should call a developer-controlled backend that owns the key, enforces
+quotas and authentication, and forwards only privacy-reviewed diagnostics.
 
 ## On-device Gemma provider
 
@@ -221,6 +256,19 @@ Its package default is the exact fine-tuned 270M CPU artifact that passed the
 strict held-out comparison and the iPhone device benchmark. The model is not
 bundled or downloaded by SwiftMend. Accept the Gemma license, obtain the
 converted `model.litertlm` artifact separately, and keep it outside Git.
+
+The macOS and iPhone demos include a one-time file importer for that exact
+artifact. Import copies through a staging location, verifies the package-pinned
+byte size and SHA-256 digest before activation, and stores the accepted file in
+the app's Application Support directory. The stored model is excluded from
+device backups. On later launches, the demo restores the installed model and
+loads one shared `LocalGemmaRecoveryModelProvider` actor instead of importing or
+initializing it for every scenario.
+
+Model setup is reported as unavailable, importing, loading, ready, or failed.
+An absent or invalid artifact and any loading or inference failure use reviewed
+deterministic fallback advice; the UI does not claim that Gemma produced a
+fallback result.
 
 ```swift
 import SwiftMendLiteRT
@@ -323,9 +371,9 @@ swift test
 
 ## Challenges
 
-The central product challenge was giving Gemma enough context to explain an
-error without passing passwords, tokens, account data, or raw server responses.
-That led to SwiftMend's explicit privacy-reviewed snapshot boundary.
+The central product challenge was giving Gemini or Gemma enough context to
+explain an error without passing passwords, tokens, account data, or raw server
+responses. That led to SwiftMend's explicit privacy-reviewed snapshot boundary.
 
 The reliability challenge was ensuring model output could never make recovery
 itself fail. SwiftMend validates the response, rejects unknown or malformed

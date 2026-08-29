@@ -120,6 +120,78 @@ struct RecoveryEngineTests {
         #expect(resolution.source == .fallback)
     }
 
+    @Test(
+        "Blank provider advice uses local fallback",
+        arguments: [
+            RecoveryAdvice(
+                title: "   ",
+                message: "Choose an approved option.",
+                actions: [RecoveryAction(id: "retry", title: "Model title")]
+            ),
+            RecoveryAdvice(
+                title: "Recover",
+                message: "\n\t",
+                actions: [RecoveryAction(id: "retry", title: "Model title")]
+            )
+        ]
+    )
+    func blankProviderAdviceUsesFallback(_ providerAdvice: RecoveryAdvice) async {
+        let engine = RecoveryEngine(
+            fallbackAdvice: fallback,
+            approvedModelActions: approvedActions,
+            modelProvider: MockRecoveryModelProvider(returning: providerAdvice)
+        )
+
+        let resolution = await engine.resolve(snapshot, context: context)
+
+        #expect(resolution.advice == fallback)
+        #expect(resolution.source == .fallback)
+    }
+
+    @Test("Provider advice without an action uses local fallback")
+    func providerAdviceWithoutActionUsesFallback() async {
+        let engine = RecoveryEngine(
+            fallbackAdvice: fallback,
+            approvedModelActions: approvedActions,
+            modelProvider: MockRecoveryModelProvider(
+                returning: RecoveryAdvice(
+                    title: "Recover",
+                    message: "Choose an approved option.",
+                    actions: []
+                )
+            )
+        )
+
+        let resolution = await engine.resolve(snapshot, context: context)
+
+        #expect(resolution.advice == fallback)
+        #expect(resolution.source == .fallback)
+    }
+
+    @Test("Provider advice with more than three actions uses local fallback")
+    func providerAdviceWithTooManyActionsUsesFallback() async {
+        let expandedCatalog = approvedActions + [
+            RecoveryAction(id: "cancel", title: "Cancel"),
+            RecoveryAction(id: "contact-support", title: "Contact Support")
+        ]
+        let engine = RecoveryEngine(
+            fallbackAdvice: fallback,
+            approvedModelActions: expandedCatalog,
+            modelProvider: MockRecoveryModelProvider(
+                returning: RecoveryAdvice(
+                    title: "Recover",
+                    message: "Choose an approved option.",
+                    actions: expandedCatalog
+                )
+            )
+        )
+
+        let resolution = await engine.resolve(snapshot, context: context)
+
+        #expect(resolution.advice == fallback)
+        #expect(resolution.source == .fallback)
+    }
+
     @Test("An empty approved-action catalog skips the provider")
     func emptyCatalogSkipsProvider() async {
         let provider = RecordingRecoveryModelProvider(

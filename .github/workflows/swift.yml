@@ -22,4 +22,6 @@ jobs:
           -scheme SwiftMendDemoApp
           -destination 'generic/platform=iOS Simulator'
           CODE_SIGNING_ALLOWED=NO
+          ARCHS=arm64
+          ONLY_ACTIVE_ARCH=YES
           build

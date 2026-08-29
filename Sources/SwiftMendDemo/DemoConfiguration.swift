@@ -2,10 +2,10 @@ import SwiftMend
 import Foundation
 
 struct DemoConfiguration: Sendable {
-    let gemmaProvider: (any RecoveryModelProviding)?
+    let geminiProvider: (any RecoveryModelProviding)?
 
-    var isLiveGemmaConfigured: Bool {
-        gemmaProvider != nil
+    var isGeminiConfigured: Bool {
+        geminiProvider != nil
     }
 
     init(
@@ -15,16 +15,17 @@ struct DemoConfiguration: Sendable {
         let apiKey = environment["GEMINI_API_KEY"] ?? bundleAPIKey
         guard let apiKey,
               apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
-            gemmaProvider = nil
+            geminiProvider = nil
             return
         }
 
-        gemmaProvider = try? DiagnosticRecoveryModelProvider(
-            wrapping: GemmaRecoveryModelProvider(apiKey: apiKey)
+        geminiProvider = try? DiagnosticRecoveryModelProvider(
+            wrapping: GeminiRecoveryModelProvider(apiKey: apiKey),
+            providerKind: .gemini
         )
     }
 
-    init(gemmaProvider: (any RecoveryModelProviding)?) {
-        self.gemmaProvider = gemmaProvider
+    init(geminiProvider: (any RecoveryModelProviding)?) {
+        self.geminiProvider = geminiProvider
     }
 }
