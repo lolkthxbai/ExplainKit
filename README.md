@@ -167,6 +167,64 @@ can be extracted. The direct provider and local secrets file exist only to make
 this proof of concept easy to demonstrate on one machine. Production apps
 should call a developer-controlled backend that owns the key.
 
+## Experimental on-device Gemma provider
+
+The optional `SwiftMendLiteRT` product runs the pinned
+[`litert-community/Gemma3-1B-IT`](https://huggingface.co/litert-community/Gemma3-1B-IT)
+QAT 4-bit artifact through Google's
+[`LiteRT-LM`](https://developers.google.com/edge/litert-lm/overview) runtime. The
+model is not bundled or downloaded by SwiftMend. Accept the Gemma license,
+download `gemma3-1b-it-int4.litertlm` yourself, and keep the artifact outside
+Git.
+
+```swift
+import SwiftMendLiteRT
+
+let configuration = LocalGemmaConfiguration(
+    modelURL: modelURL,
+    cacheURL: cacheURL
+)
+let provider = try await LocalGemmaRecoveryModelProvider.load(
+    configuration: configuration
+)
+```
+
+Loading verifies the pinned file size and SHA-256 digest before initializing
+LiteRT-LM. Generation uses greedy decoding and a JSON schema whose action-ID
+enum comes from the developer's catalog. The provider then performs the same
+canonical action mapping as the hosted provider, while `RecoveryEngine` remains
+the final enforcement and fallback boundary.
+
+The Swift package links the official LiteRT-LM 0.16.0 release XCFrameworks
+directly. This avoids a Git LFS packaging problem in that release's Swift
+package without vendoring Google's runtime.
+
+## Evaluation and 270M experiment
+
+`SwiftMendEvaluation` includes the versioned v1 recovery dataset with 21
+reviewed scenarios. Password, authentication, networking, permissions, storage,
+payments, and service-failure categories each have distinct training,
+validation, and held-out test cases. The test split is never exported by the
+fine-tuning tool.
+
+Run a baseline after placing the licensed 1B artifact on the machine:
+
+```shell
+swift run SwiftMendBenchmark \
+  --model /path/to/gemma3-1b-it-int4.litertlm \
+  --split test \
+  --output /tmp/swiftmend-1b-report.json
+```
+
+The JSON report records exact recovery-action accuracy, schema-valid JSON rate,
+mean and p95 generation latency, process peak memory, and fallback frequency.
+It never stores raw model output or secret values.
+
+The experimental 270M training and LiteRT conversion workflow is documented in
+[`Training/README.md`](Training/README.md). `SwiftMendCompare` requires every
+quality and resource tolerance to be supplied explicitly. There is no default
+approval threshold and no automatic model switch.
+
 ## Development
 
 Build and test the package with:

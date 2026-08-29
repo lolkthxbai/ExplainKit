@@ -2,3 +2,6 @@
 .swiftpm/
 .DS_Store
 Examples/SwiftMendDemoApp/Configurations/Secrets.xcconfig
+*.litertlm
+Evaluation/Reports/
+Training/Output/
