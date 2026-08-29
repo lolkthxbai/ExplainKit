@@ -5,7 +5,7 @@ extension RecoveryAdviceSource {
     var displayName: String {
         switch self {
         case .developerRule(let id): "Developer rule · \(id)"
-        case .model: "Gemma"
+        case .model: "Gemma · approved actions"
         case .fallback: "Local fallback"
         }
     }

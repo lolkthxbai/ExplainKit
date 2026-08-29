@@ -4,7 +4,8 @@ import Foundation
 enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
     case passwordRejected
     case noInternet
-    case liveGemma
+    case liveGemmaStorePickup
+    case liveGemmaPhotoUpload
 
     var id: String { rawValue }
 
@@ -12,7 +13,8 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .passwordRejected: "Password rejected"
         case .noInternet: "No internet"
-        case .liveGemma: "Live Gemma recovery"
+        case .liveGemmaStorePickup: "Live Gemma: store pickup"
+        case .liveGemmaPhotoUpload: "Live Gemma: photo upload"
         }
     }
 
@@ -20,7 +22,8 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .passwordRejected: "Developer-approved rule"
         case .noInternet: "Local fallback"
-        case .liveGemma: "Hosted Gemma request"
+        case .liveGemmaStorePickup, .liveGemmaPhotoUpload:
+            "Hosted Gemma · approved actions only"
         }
     }
 
@@ -28,7 +31,15 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .passwordRejected: "key.fill"
         case .noInternet: "wifi.slash"
-        case .liveGemma: "sparkles"
+        case .liveGemmaStorePickup: "shippingbox.fill"
+        case .liveGemmaPhotoUpload: "photo.badge.exclamationmark"
+        }
+    }
+
+    var usesGemma: Bool {
+        switch self {
+        case .liveGemmaStorePickup, .liveGemmaPhotoUpload: true
+        case .passwordRejected, .noInternet: false
         }
     }
 
@@ -58,8 +69,10 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
             NSError(domain: "DemoAuth", code: 1001)
         case .noInternet:
             NSError(domain: NSURLErrorDomain, code: NSURLErrorNotConnectedToInternet)
-        case .liveGemma:
+        case .liveGemmaStorePickup:
             NSError(domain: "DemoCheckout", code: 2001)
+        case .liveGemmaPhotoUpload:
+            NSError(domain: "DemoUpload", code: 3001)
         }
     }
 
@@ -67,7 +80,8 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .passwordRejected: "The password could not be accepted."
         case .noInternet: "The Internet connection appears to be offline."
-        case .liveGemma: "The checkout request could not be completed."
+        case .liveGemmaStorePickup: "The checkout request could not be completed."
+        case .liveGemmaPhotoUpload: "The photo could not be uploaded."
         }
     }
 
@@ -75,7 +89,8 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .passwordRejected: "Password policy validation failed."
         case .noInternet: "A network request failed before reaching the service."
-        case .liveGemma: "The selected delivery option is temporarily unavailable."
+        case .liveGemmaStorePickup: "The selected delivery option is temporarily unavailable."
+        case .liveGemmaPhotoUpload: "The selected photo exceeds the app's upload limit."
         }
     }
 
@@ -88,10 +103,19 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
             )
         case .noInternet:
             RecoveryContext(feature: "profile sync")
-        case .liveGemma:
+        case .liveGemmaStorePickup:
             RecoveryContext(
                 feature: "checkout",
                 attributes: ["deliveryOption": "store pickup"]
+            )
+        case .liveGemmaPhotoUpload:
+            RecoveryContext(
+                feature: "profile photo upload",
+                attributes: [
+                    "fileSizeMB": "18",
+                    "maximumFileSizeMB": "10",
+                    "fileType": "HEIC"
+                ]
             )
         }
     }
@@ -129,18 +153,52 @@ enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
                     ]
                 )
             )
-        case .liveGemma:
+        case .liveGemmaStorePickup:
             RecoveryEngine(
                 fallbackAdvice: RecoveryAdvice(
                     title: "Choose another delivery option",
                     message: "Return to checkout, select a different delivery option, and try again.",
                     actions: [
-                        RecoveryAction(id: "change-delivery", title: "Change Delivery Option"),
-                        RecoveryAction(id: "retry", title: "Try Again")
+                        RecoveryAction(id: "select-home-delivery", title: "Select Home Delivery"),
+                        RecoveryAction(id: "choose-different-store", title: "Choose a Different Store"),
+                        RecoveryAction(id: "try-again-later", title: "Try Again Later")
                     ]
                 ),
+                approvedModelActions: approvedModelActions,
                 modelProvider: modelProvider
             )
+        case .liveGemmaPhotoUpload:
+            RecoveryEngine(
+                fallbackAdvice: RecoveryAdvice(
+                    title: "Choose a smaller photo",
+                    message: "Select a photo under 10 MB, then try again.",
+                    actions: [
+                        RecoveryAction(id: "choose-smaller-photo", title: "Choose a Smaller Photo"),
+                        RecoveryAction(id: "try-again", title: "Try Again")
+                    ]
+                ),
+                approvedModelActions: approvedModelActions,
+                modelProvider: modelProvider
+            )
+        }
+    }
+
+    var approvedModelActions: [RecoveryAction] {
+        switch self {
+        case .liveGemmaStorePickup:
+            [
+                RecoveryAction(id: "select-home-delivery", title: "Select Home Delivery"),
+                RecoveryAction(id: "choose-different-store", title: "Choose a Different Store"),
+                RecoveryAction(id: "try-again-later", title: "Try Again Later")
+            ]
+        case .liveGemmaPhotoUpload:
+            [
+                RecoveryAction(id: "choose-smaller-photo", title: "Choose a Smaller Photo"),
+                RecoveryAction(id: "compress-photo", title: "Compress Photo"),
+                RecoveryAction(id: "try-again", title: "Try Again")
+            ]
+        case .passwordRejected, .noInternet:
+            []
         }
     }
 
