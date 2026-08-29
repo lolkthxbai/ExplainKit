@@ -11,6 +11,7 @@ let package = Package(
         .executable(name: "SwiftMendBenchmark", targets: ["SwiftMendBenchmark"]),
         .executable(name: "SwiftMendDatasetTool", targets: ["SwiftMendDatasetTool"]),
         .executable(name: "SwiftMendCompare", targets: ["SwiftMendCompare"]),
+        .executable(name: "SwiftMendModelTool", targets: ["SwiftMendModelTool"]),
         .executable(name: "SwiftMendDemo", targets: ["SwiftMendDemo"])
     ],
     targets: [
@@ -49,6 +50,10 @@ let package = Package(
         .executableTarget(
             name: "SwiftMendCompare",
             dependencies: ["SwiftMendEvaluation"]
+        ),
+        .executableTarget(
+            name: "SwiftMendModelTool",
+            dependencies: ["SwiftMendLiteRT"]
         ),
         .executableTarget(name: "SwiftMendDemo", dependencies: ["SwiftMend"]),
         .testTarget(name: "SwiftMendTests", dependencies: ["SwiftMend", "SwiftMendDemo"]),

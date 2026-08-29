@@ -184,9 +184,11 @@ final class LiteRTGemmaTextGenerator: @unchecked Sendable, LocalGemmaTextGenerat
     }
 
     private static func validate(_ configuration: LocalGemmaConfiguration) throws {
+        try LocalGemmaModelManifest(model: configuration.model).validate()
         guard configuration.maximumContextTokens > 0,
               configuration.maximumOutputTokens > 0,
-              configuration.maximumOutputTokens < configuration.maximumContextTokens else {
+              configuration.maximumOutputTokens < configuration.maximumContextTokens,
+              configuration.modelURL.lastPathComponent == configuration.model.fileName else {
             throw LocalGemmaProviderError.invalidConfiguration
         }
 

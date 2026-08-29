@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 public enum LocalGemmaBackend: Equatable, Sendable {
@@ -5,25 +6,28 @@ public enum LocalGemmaBackend: Equatable, Sendable {
     case gpu
 }
 
-public struct LocalGemmaModelDescriptor: Equatable, Sendable {
+public struct LocalGemmaModelDescriptor: Codable, Equatable, Sendable {
     public let id: String
     public let revision: String
     public let fileName: String
     public let fileSize: Int64
     public let sha256: String
+    public let parameterCount: Int64
 
     public init(
         id: String,
         revision: String,
         fileName: String,
         fileSize: Int64,
-        sha256: String
+        sha256: String,
+        parameterCount: Int64
     ) {
         self.id = id
         self.revision = revision
         self.fileName = fileName
         self.fileSize = fileSize
         self.sha256 = sha256
+        self.parameterCount = parameterCount
     }
 
     public static let gemma3_1BInstructionTunedQAT4Bit = LocalGemmaModelDescriptor(
@@ -31,8 +35,83 @@ public struct LocalGemmaModelDescriptor: Equatable, Sendable {
         revision: "6d54daa71cfbffba6b2843c08eeb1a27e7430bf0",
         fileName: "gemma3-1b-it-int4.litertlm",
         fileSize: 584_417_280,
-        sha256: "1325ae366d31950f137c9c357b9fa89448b176d76998180c08ceaca78bba98be"
+        sha256: "1325ae366d31950f137c9c357b9fa89448b176d76998180c08ceaca78bba98be",
+        parameterCount: 1_000_000_000
     )
+}
+
+public struct LocalGemmaModelManifest: Codable, Equatable, Sendable {
+    public let schemaVersion: Int
+    public let model: LocalGemmaModelDescriptor
+
+    public init(schemaVersion: Int = 1, model: LocalGemmaModelDescriptor) {
+        self.schemaVersion = schemaVersion
+        self.model = model
+    }
+
+    public static func load(from url: URL) throws -> LocalGemmaModelManifest {
+        let manifest = try JSONDecoder().decode(
+            LocalGemmaModelManifest.self,
+            from: Data(contentsOf: url)
+        )
+        try manifest.validate()
+        return manifest
+    }
+
+    public static func create(
+        for modelURL: URL,
+        id: String,
+        revision: String,
+        parameterCount: Int64
+    ) throws -> LocalGemmaModelManifest {
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: modelURL.path, isDirectory: &isDirectory),
+              isDirectory.boolValue == false else {
+            throw LocalGemmaProviderError.modelFileMissing
+        }
+        let attributes = try FileManager.default.attributesOfItem(atPath: modelURL.path)
+        guard let fileSize = attributes[.size] as? NSNumber else {
+            throw LocalGemmaProviderError.invalidConfiguration
+        }
+        let manifest = LocalGemmaModelManifest(
+            model: LocalGemmaModelDescriptor(
+                id: id,
+                revision: revision,
+                fileName: modelURL.lastPathComponent,
+                fileSize: fileSize.int64Value,
+                sha256: try sha256(for: modelURL),
+                parameterCount: parameterCount
+            )
+        )
+        try manifest.validate()
+        return manifest
+    }
+
+    public func validate() throws {
+        let hexadecimal = CharacterSet(charactersIn: "0123456789abcdef")
+        guard schemaVersion == 1,
+              model.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false,
+              model.revision.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false,
+              model.fileName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false,
+              model.fileSize > 0,
+              model.parameterCount > 0,
+              model.sha256.count == 64,
+              model.sha256.lowercased().unicodeScalars.allSatisfy(hexadecimal.contains) else {
+            throw LocalGemmaProviderError.invalidConfiguration
+        }
+    }
+
+    private static func sha256(for url: URL) throws -> String {
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        var hasher = SHA256()
+        while true {
+            let data = try handle.read(upToCount: 1_048_576) ?? Data()
+            guard data.isEmpty == false else { break }
+            hasher.update(data: data)
+        }
+        return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+    }
 }
 
 public struct LocalGemmaConfiguration: Equatable, Sendable {

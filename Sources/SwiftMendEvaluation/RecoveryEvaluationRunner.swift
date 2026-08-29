@@ -11,9 +11,11 @@ public struct RecoveryEvaluationRunner: Sendable {
     public func evaluate(
         dataset: RecoveryEvaluationDataset,
         provider: any RecoveryEvaluationCandidateProviding,
+        runMetadata: RecoveryEvaluationRunMetadata,
         split: RecoveryEvaluationSplit? = nil
     ) async throws -> RecoveryEvaluationReport {
         try dataset.validate()
+        try runMetadata.validate()
         let scenarios = dataset.scenarios.filter { split == nil || $0.split == split }
         var results: [RecoveryEvaluationScenarioResult] = []
         results.reserveCapacity(scenarios.count)
@@ -73,9 +75,10 @@ public struct RecoveryEvaluationRunner: Sendable {
         }
 
         return RecoveryEvaluationReport(
-            schemaVersion: 1,
+            schemaVersion: 2,
             datasetVersion: dataset.datasetVersion,
             generatedAt: Date(),
+            run: runMetadata,
             results: results,
             metrics: RecoveryEvaluationMetrics(results: results)
         )
@@ -100,8 +103,36 @@ public struct RecoveryEvaluationReport: Codable, Equatable, Sendable {
     public let schemaVersion: Int
     public let datasetVersion: String
     public let generatedAt: Date
+    public let run: RecoveryEvaluationRunMetadata
     public let results: [RecoveryEvaluationScenarioResult]
     public let metrics: RecoveryEvaluationMetrics
+
+    public func validate() throws {
+        try run.validate()
+        guard schemaVersion == 2,
+              datasetVersion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false,
+              results.isEmpty == false,
+              Set(results.map(\.scenarioID)).count == results.count else {
+            throw RecoveryEvaluationReportError.invalidReport
+        }
+        for result in results {
+            guard result.scenarioID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false,
+                  result.source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false,
+                  Set(result.selectedActionIDs).count == result.selectedActionIDs.count,
+                  result.latencyMilliseconds.isFinite,
+                  result.latencyMilliseconds >= 0 else {
+                throw RecoveryEvaluationReportError.invalidReport
+            }
+        }
+        guard metrics == RecoveryEvaluationMetrics(results: results) else {
+            throw RecoveryEvaluationReportError.inconsistentMetrics
+        }
+    }
+}
+
+public enum RecoveryEvaluationReportError: Error, Equatable, Sendable {
+    case invalidReport
+    case inconsistentMetrics
 }
 
 public struct RecoveryEvaluationScenarioResult: Codable, Equatable, Sendable {

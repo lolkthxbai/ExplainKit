@@ -16,6 +16,7 @@ struct SwiftMendBenchmark {
 
         let configuration = LocalGemmaConfiguration(
             modelURL: arguments.modelURL,
+            model: arguments.model,
             backend: arguments.backend,
             cacheURL: arguments.cacheURL
         )
@@ -27,6 +28,20 @@ struct SwiftMendBenchmark {
         ).evaluate(
             dataset: dataset,
             provider: LocalCandidateProvider(provider: localProvider),
+            runMetadata: RecoveryEvaluationRunMetadata(
+                model: RecoveryEvaluationModelIdentity(
+                    id: arguments.model.id,
+                    revision: arguments.model.revision,
+                    fileName: arguments.model.fileName,
+                    fileSize: arguments.model.fileSize,
+                    sha256: arguments.model.sha256,
+                    parameterCount: arguments.model.parameterCount
+                ),
+                runtime: "LiteRT-LM 0.16.0",
+                backend: arguments.backendLabel,
+                hardwareModel: MachineIdentity.hardwareModel,
+                operatingSystem: ProcessInfo.processInfo.operatingSystemVersionString
+            ),
             split: arguments.split
         )
 
@@ -41,6 +56,7 @@ struct SwiftMendBenchmark {
         try data.write(to: arguments.outputURL, options: .atomic)
 
         print("Dataset: \(report.datasetVersion)")
+        print("Model: \(report.run.model.id) @ \(report.run.model.revision)")
         print("Scenarios: \(report.metrics.scenarioCount)")
         print("Recovery accuracy: \(Self.percent(report.metrics.recoveryAccuracy))")
         print("Valid JSON rate: \(Self.percent(report.metrics.validJSONRate))")
@@ -90,11 +106,19 @@ private enum ProcessPeakMemory {
 
 private struct BenchmarkArguments {
     let modelURL: URL
+    let model: LocalGemmaModelDescriptor
     let datasetURL: URL?
     let outputURL: URL
     let cacheURL: URL
     let backend: LocalGemmaBackend
     let split: RecoveryEvaluationSplit?
+
+    var backendLabel: String {
+        switch backend {
+        case .gpu: "gpu"
+        case .cpu(let threadCount): "cpu:\(threadCount.map(String.init) ?? "default")"
+        }
+    }
 
     static func parse(_ arguments: [String]) throws -> BenchmarkArguments {
         let values = Array(arguments.dropFirst())
@@ -123,8 +147,15 @@ private struct BenchmarkArguments {
         let cachePath = value(after: "--cache", in: values)
             ?? FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
                 .appending(path: "SwiftMend/LiteRT", directoryHint: .isDirectory).path
+        let model: LocalGemmaModelDescriptor
+        if let manifestPath = value(after: "--manifest", in: values) {
+            model = try LocalGemmaModelManifest.load(from: URL(filePath: manifestPath)).model
+        } else {
+            model = .gemma3_1BInstructionTunedQAT4Bit
+        }
         return BenchmarkArguments(
             modelURL: URL(filePath: modelPath),
+            model: model,
             datasetURL: value(after: "--dataset", in: values).map { URL(filePath: $0) },
             outputURL: URL(filePath: outputPath),
             cacheURL: URL(filePath: cachePath),
@@ -141,6 +172,21 @@ private struct BenchmarkArguments {
     }
 }
 
+private enum MachineIdentity {
+    static var hardwareModel: String {
+        var size = 0
+        guard sysctlbyname("hw.model", nil, &size, nil, 0) == 0, size > 1 else {
+            return "unknown"
+        }
+        var characters = [CChar](repeating: 0, count: size)
+        guard sysctlbyname("hw.model", &characters, &size, nil, 0) == 0 else {
+            return "unknown"
+        }
+        let bytes = characters.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }
+        return String(decoding: bytes, as: UTF8.self)
+    }
+}
+
 private enum BenchmarkArgumentError: Error, CustomStringConvertible {
     case usage
     case invalidBackend
@@ -149,7 +195,7 @@ private enum BenchmarkArgumentError: Error, CustomStringConvertible {
     var description: String {
         switch self {
         case .usage:
-            "Usage: swift run SwiftMendBenchmark --model <gemma3-1b-it-int4.litertlm> --output <report.json> [--dataset <dataset.json>] [--split training|validation|test|all] [--backend gpu|cpu] [--cache <directory>]"
+            "Usage: swift run SwiftMendBenchmark --model <model.litertlm> --output <report.json> [--manifest <custom-model-manifest.json>] [--dataset <dataset.json>] [--split training|validation|test|all] [--backend gpu|cpu] [--cache <directory>]"
         case .invalidBackend:
             "Backend must be gpu or cpu."
         case .invalidSplit:

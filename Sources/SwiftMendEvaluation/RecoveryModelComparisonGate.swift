@@ -22,10 +22,15 @@ public struct RecoveryModelComparisonTolerance: Equatable, Sendable {
     }
 
     fileprivate var isValid: Bool {
-        maximumRecoveryAccuracyDrop >= 0
-            && maximumValidJSONRateDrop >= 0
-            && maximumFallbackFrequencyIncrease >= 0
+        maximumRecoveryAccuracyDrop.isFinite
+            && 0...1 ~= maximumRecoveryAccuracyDrop
+            && maximumValidJSONRateDrop.isFinite
+            && 0...1 ~= maximumValidJSONRateDrop
+            && maximumFallbackFrequencyIncrease.isFinite
+            && 0...1 ~= maximumFallbackFrequencyIncrease
+            && maximumP95LatencyRatio.isFinite
             && maximumP95LatencyRatio > 0
+            && maximumPeakMemoryRatio.isFinite
             && maximumPeakMemoryRatio > 0
     }
 }
@@ -52,10 +57,22 @@ public enum RecoveryModelComparisonGate {
         guard tolerance.isValid else {
             throw RecoveryModelComparisonError.invalidTolerance
         }
+        try baseline.validate()
+        try candidate.validate()
         guard baseline.datasetVersion == candidate.datasetVersion,
               Set(baseline.results.map(\.scenarioID)) == Set(candidate.results.map(\.scenarioID)),
               baseline.results.isEmpty == false else {
             throw RecoveryModelComparisonError.incomparableReports
+        }
+        guard baseline.run.model.parameterCount == 1_000_000_000,
+              candidate.run.model.parameterCount == 270_000_000 else {
+            throw RecoveryModelComparisonError.wrongModelRoles
+        }
+        guard baseline.run.environmentFingerprint == candidate.run.environmentFingerprint else {
+            throw RecoveryModelComparisonError.environmentMismatch
+        }
+        guard baseline.run.model.sha256 != candidate.run.model.sha256 else {
+            throw RecoveryModelComparisonError.identicalArtifacts
         }
 
         var failures: [RecoveryModelComparisonFailure] = []
@@ -75,8 +92,8 @@ public enum RecoveryModelComparisonGate {
             > baseline.metrics.p95LatencyMilliseconds * tolerance.maximumP95LatencyRatio {
             failures.append(.p95Latency)
         }
-        if candidate.metrics.peakMemoryBytes
-            > UInt64(Double(baseline.metrics.peakMemoryBytes) * tolerance.maximumPeakMemoryRatio) {
+        if Double(candidate.metrics.peakMemoryBytes)
+            > Double(baseline.metrics.peakMemoryBytes) * tolerance.maximumPeakMemoryRatio {
             failures.append(.peakMemory)
         }
         return RecoveryModelComparisonResult(passes: failures.isEmpty, failures: failures)
@@ -86,4 +103,7 @@ public enum RecoveryModelComparisonGate {
 public enum RecoveryModelComparisonError: Error, Equatable, Sendable {
     case invalidTolerance
     case incomparableReports
+    case wrongModelRoles
+    case environmentMismatch
+    case identicalArtifacts
 }

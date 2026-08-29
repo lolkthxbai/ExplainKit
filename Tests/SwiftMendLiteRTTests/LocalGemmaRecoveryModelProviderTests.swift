@@ -109,6 +109,7 @@ struct LocalGemmaRecoveryModelProviderTests {
         #expect(model.fileSize == 584_417_280)
         #expect(model.sha256.count == 64)
         #expect(model.revision.count == 40)
+        #expect(model.parameterCount == 1_000_000_000)
     }
 
     @Test("Missing model artifacts fail before LiteRT initialization")
@@ -116,7 +117,9 @@ struct LocalGemmaRecoveryModelProviderTests {
         let temporaryDirectory = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
         let configuration = LocalGemmaConfiguration(
-            modelURL: temporaryDirectory.appending(path: "missing.litertlm"),
+            modelURL: temporaryDirectory.appending(
+                path: LocalGemmaModelDescriptor.gemma3_1BInstructionTunedQAT4Bit.fileName
+            ),
             cacheURL: temporaryDirectory.appending(path: "cache")
         )
 
@@ -129,7 +132,9 @@ struct LocalGemmaRecoveryModelProviderTests {
     func modelSizeMismatchFailsBeforeInitialization() async throws {
         let temporaryDirectory = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
-        let modelURL = temporaryDirectory.appending(path: "model.litertlm")
+        let modelURL = temporaryDirectory.appending(
+            path: LocalGemmaModelDescriptor.gemma3_1BInstructionTunedQAT4Bit.fileName
+        )
         try Data([0x01]).write(to: modelURL)
         let configuration = LocalGemmaConfiguration(
             modelURL: modelURL,
@@ -152,7 +157,8 @@ struct LocalGemmaRecoveryModelProviderTests {
             revision: String(repeating: "0", count: 40),
             fileName: "model.litertlm",
             fileSize: 1,
-            sha256: String(repeating: "0", count: 64)
+            sha256: String(repeating: "0", count: 64),
+            parameterCount: 1
         )
         let configuration = LocalGemmaConfiguration(
             modelURL: modelURL,
@@ -163,6 +169,29 @@ struct LocalGemmaRecoveryModelProviderTests {
         await #expect(throws: LocalGemmaProviderError.modelChecksumMismatch) {
             try await LocalGemmaRecoveryModelProvider.load(configuration: configuration)
         }
+    }
+
+    @Test("Custom model manifests pin artifact identity for candidate benchmarks")
+    func customManifestRoundTrip() throws {
+        let temporaryDirectory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
+        let modelURL = temporaryDirectory.appending(path: "candidate.litertlm")
+        try Data([0x01, 0x02, 0x03]).write(to: modelURL)
+        let manifest = try LocalGemmaModelManifest.create(
+            for: modelURL,
+            id: "swiftmend/gemma-3-270m-recovery",
+            revision: "training-manifest-sha256",
+            parameterCount: 270_000_000
+        )
+        let manifestURL = temporaryDirectory.appending(path: "manifest.json")
+        try JSONEncoder().encode(manifest).write(to: manifestURL)
+        let loaded = try LocalGemmaModelManifest.load(from: manifestURL)
+
+        #expect(loaded == manifest)
+        #expect(loaded.model.fileName == modelURL.lastPathComponent)
+        #expect(loaded.model.fileSize == 3)
+        #expect(loaded.model.sha256.count == 64)
+        #expect(loaded.model.parameterCount == 270_000_000)
     }
 
     private func modelRequest(

@@ -94,7 +94,11 @@ struct RecoveryEvaluationTests {
         )
         let report = try await RecoveryEvaluationRunner(
             peakMemoryReader: { 4_096 }
-        ).evaluate(dataset: dataset, provider: provider)
+        ).evaluate(
+            dataset: dataset,
+            provider: provider,
+            runMetadata: runMetadata()
+        )
 
         #expect(report.metrics.scenarioCount == 3)
         #expect(report.metrics.modelAttemptCount == 2)
@@ -117,10 +121,24 @@ struct RecoveryEvaluationTests {
         )
         let baseline = try await RecoveryEvaluationRunner(
             peakMemoryReader: { 4_096 }
-        ).evaluate(dataset: dataset, provider: AlwaysValidCandidateProvider())
+        ).evaluate(
+            dataset: dataset,
+            provider: AlwaysValidCandidateProvider(),
+            runMetadata: runMetadata(
+                parameterCount: 1_000_000_000,
+                sha256: String(repeating: "a", count: 64)
+            )
+        )
         let candidate = try await RecoveryEvaluationRunner(
             peakMemoryReader: { 4_096 }
-        ).evaluate(dataset: dataset, provider: AlwaysInvalidCandidateProvider())
+        ).evaluate(
+            dataset: dataset,
+            provider: AlwaysInvalidCandidateProvider(),
+            runMetadata: runMetadata(
+                parameterCount: 270_000_000,
+                sha256: String(repeating: "b", count: 64)
+            )
+        )
         let result = try RecoveryModelComparisonGate.compare(
             baseline: baseline,
             candidate: candidate,
@@ -137,6 +155,90 @@ struct RecoveryEvaluationTests {
         #expect(result.failures.contains(.recoveryAccuracy))
         #expect(result.failures.contains(.validJSONRate))
         #expect(result.failures.contains(.fallbackFrequency))
+    }
+
+    @Test("The model gate rejects wrong model roles and mismatched environments")
+    func comparisonIntegrity() async throws {
+        let dataset = RecoveryEvaluationDataset(
+            schemaVersion: 1,
+            datasetVersion: "integrity-test",
+            scenarios: [scenario(id: "comparison-integrity", code: 1)]
+        )
+        let baseline = try await RecoveryEvaluationRunner().evaluate(
+            dataset: dataset,
+            provider: AlwaysValidCandidateProvider(),
+            runMetadata: runMetadata(
+                parameterCount: 1_000_000_000,
+                sha256: String(repeating: "a", count: 64)
+            )
+        )
+        let wrongRole = try await RecoveryEvaluationRunner().evaluate(
+            dataset: dataset,
+            provider: AlwaysValidCandidateProvider(),
+            runMetadata: runMetadata(
+                parameterCount: 1_000_000_000,
+                sha256: String(repeating: "b", count: 64)
+            )
+        )
+        let wrongEnvironment = try await RecoveryEvaluationRunner().evaluate(
+            dataset: dataset,
+            provider: AlwaysValidCandidateProvider(),
+            runMetadata: runMetadata(
+                parameterCount: 270_000_000,
+                sha256: String(repeating: "b", count: 64),
+                hardwareModel: "different-hardware"
+            )
+        )
+        let tolerance = RecoveryModelComparisonTolerance(
+            maximumRecoveryAccuracyDrop: 0,
+            maximumValidJSONRateDrop: 0,
+            maximumFallbackFrequencyIncrease: 0,
+            maximumP95LatencyRatio: 1,
+            maximumPeakMemoryRatio: 1
+        )
+
+        #expect(throws: RecoveryModelComparisonError.wrongModelRoles) {
+            try RecoveryModelComparisonGate.compare(
+                baseline: baseline,
+                candidate: wrongRole,
+                tolerance: tolerance
+            )
+        }
+        #expect(throws: RecoveryModelComparisonError.environmentMismatch) {
+            try RecoveryModelComparisonGate.compare(
+                baseline: baseline,
+                candidate: wrongEnvironment,
+                tolerance: tolerance
+            )
+        }
+    }
+
+    @Test("Report validation rejects metrics that do not match scenario results")
+    func reportIntegrity() async throws {
+        let dataset = RecoveryEvaluationDataset(
+            schemaVersion: 1,
+            datasetVersion: "report-integrity-test",
+            scenarios: [scenario(id: "report-integrity", code: 1)]
+        )
+        let report = try await RecoveryEvaluationRunner().evaluate(
+            dataset: dataset,
+            provider: AlwaysValidCandidateProvider(),
+            runMetadata: runMetadata()
+        )
+        var object = try #require(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode(report)) as? [String: Any]
+        )
+        var metrics = try #require(object["metrics"] as? [String: Any])
+        metrics["recoveryAccuracy"] = 0
+        object["metrics"] = metrics
+        let tampered = try JSONDecoder().decode(
+            RecoveryEvaluationReport.self,
+            from: JSONSerialization.data(withJSONObject: object)
+        )
+
+        #expect(throws: RecoveryEvaluationReportError.inconsistentMetrics) {
+            try tampered.validate()
+        }
     }
 
     private func scenario(
@@ -167,6 +269,27 @@ struct RecoveryEvaluationTests {
                 message: "Try later.",
                 actions: [RecoveryAction(id: "dismiss", title: "Dismiss")]
             )
+        )
+    }
+
+    private func runMetadata(
+        parameterCount: Int64 = 1_000_000_000,
+        sha256: String = String(repeating: "a", count: 64),
+        hardwareModel: String = "test-hardware"
+    ) -> RecoveryEvaluationRunMetadata {
+        RecoveryEvaluationRunMetadata(
+            model: RecoveryEvaluationModelIdentity(
+                id: "test/model-\(parameterCount)",
+                revision: "test-revision",
+                fileName: "model.litertlm",
+                fileSize: 1,
+                sha256: sha256,
+                parameterCount: parameterCount
+            ),
+            runtime: "test-runtime",
+            backend: "cpu:default",
+            hardwareModel: hardwareModel,
+            operatingSystem: "test-os"
         )
     }
 
