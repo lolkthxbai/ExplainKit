@@ -37,7 +37,40 @@ litert-torch export_hf \
   --externalize_embedder
 ```
 
-Use the generated `.litertlm` artifact with `SwiftMendBenchmark` against the held-out test split. Run the 1B baseline and 270M candidate under the same backend and device conditions.
+Create an immutable descriptor for the exact converted artifact. Replace the
+revision placeholder with the SHA-256 printed for `training-manifest.json`:
+
+```sh
+shasum -a 256 /tmp/swiftmend-gemma-270m/training-manifest.json
+swift run SwiftMendModelTool \
+  --model /tmp/swiftmend-gemma-270m/litert/model.litertlm \
+  --id swiftmend/gemma-3-270m-recovery \
+  --revision <training-manifest-sha256> \
+  --parameter-count 270000000 \
+  --output /tmp/swiftmend-gemma-270m/model-manifest.json
+```
+
+Run both models against the held-out test split on the same machine, OS,
+LiteRT-LM version, and backend:
+
+```sh
+swift run SwiftMendBenchmark \
+  --model /path/to/gemma3-1b-it-int4.litertlm \
+  --split test \
+  --backend gpu \
+  --output /tmp/swiftmend-1b-report.json
+
+swift run SwiftMendBenchmark \
+  --model /tmp/swiftmend-gemma-270m/litert/model.litertlm \
+  --manifest /tmp/swiftmend-gemma-270m/model-manifest.json \
+  --split test \
+  --backend gpu \
+  --output /tmp/swiftmend-270m-report.json
+```
+
+Each report embeds the artifact digest and execution environment. The
+comparison tool refuses mismatched environments, identical artifacts, or model
+roles other than a 1B baseline and 270M candidate.
 
 ## 4. Apply an explicit comparison tolerance
 
