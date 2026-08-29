@@ -1,14 +1,9 @@
 import argparse
 import hashlib
+import importlib.metadata
 import json
 import os
 from pathlib import Path
-
-import torch
-from datasets import load_dataset
-from peft import LoraConfig
-from trl import SFTConfig, SFTTrainer
-
 
 MODEL_ID = "google/gemma-3-270m-it"
 MODEL_REVISION = "ac82b4e820549b854eebf28ce6dedaf9fdfa17b3"
@@ -57,6 +52,11 @@ def validate_records(dataset, label):
 
 
 def main():
+    import torch
+    from datasets import load_dataset
+    from peft import LoraConfig
+    from trl import SFTConfig, SFTTrainer
+
     arguments = parse_arguments()
     if not torch.cuda.is_available():
         raise RuntimeError("This reproducible training path requires a CUDA GPU runtime.")
@@ -129,6 +129,19 @@ def main():
         "validationScenarioCount": len(validation_ids),
         "epochs": arguments.epochs,
         "seed": arguments.seed,
+        "cudaVersion": torch.version.cuda,
+        "gpu": torch.cuda.get_device_name(0),
+        "packages": {
+            package: importlib.metadata.version(package)
+            for package in (
+                "accelerate",
+                "datasets",
+                "peft",
+                "torch",
+                "transformers",
+                "trl",
+            )
+        },
     }
     (arguments.output / "training-manifest.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n",

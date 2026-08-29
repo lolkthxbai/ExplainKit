@@ -15,6 +15,11 @@ The v1 dataset has one training, one validation, and one held-out test scenario 
 
 ## 2. Train the adapter on a CUDA machine
 
+Use a managed CUDA image such as Kaggle or Colab with PyTorch already matched
+to its CUDA runtime. The requirements keep that installed PyTorch when it is
+2.5 or newer, while pinning the higher-level training libraries. The generated
+manifest records the actual GPU, CUDA, and package versions.
+
 ```sh
 python -m venv .venv
 . .venv/bin/activate
