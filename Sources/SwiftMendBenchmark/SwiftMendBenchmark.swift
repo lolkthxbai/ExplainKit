@@ -82,9 +82,16 @@ private struct LocalCandidateProvider: RecoveryEvaluationCandidateProviding {
     func candidate(for request: RecoveryModelRequest) async -> RecoveryEvaluationCandidate {
         do {
             let rawResponse = try await provider.rawResponse(for: request)
-            return RecoveryEvaluationCandidateParser.parse(
+            let candidate = RecoveryEvaluationCandidateParser.parse(
                 rawResponse,
                 approvedActions: request.approvedActions
+            )
+            guard candidate.isValidJSON == false else { return candidate }
+            return .providerFailure(
+                Self.safeFailureDescription(
+                    for: rawResponse,
+                    parserFailure: candidate.failureDescription
+                )
             )
         } catch let error as LocalGemmaProviderError {
             return .providerFailure(String(describing: error))
@@ -93,6 +100,25 @@ private struct LocalCandidateProvider: RecoveryEvaluationCandidateProviding {
         } catch {
             return .providerFailure("local-provider-error")
         }
+    }
+
+    private static func safeFailureDescription(
+        for response: String,
+        parserFailure: String?
+    ) -> String {
+        let trimmed = response.trimmingCharacters(in: .whitespacesAndNewlines)
+        let data = Data(trimmed.utf8)
+        let object = try? JSONSerialization.jsonObject(with: data)
+        let dictionary = object as? [String: Any]
+        let hasRequiredKeys = dictionary?["title"] != nil
+            && dictionary?["message"] != nil
+            && dictionary?["actionIDs"] != nil
+        return [
+            parserFailure ?? "invalid-response",
+            "bytes=\(data.count)",
+            "complete-json=\(object != nil)",
+            "required-keys=\(hasRequiredKeys)"
+        ].joined(separator: ";")
     }
 }
 
@@ -128,9 +154,18 @@ private struct BenchmarkArguments {
         }
 
         let backend: LocalGemmaBackend
+        let cpuThreadCount: Int?
+        if let threadCountText = value(after: "--cpu-threads", in: values) {
+            guard let threadCount = Int(threadCountText), threadCount > 0 else {
+                throw BenchmarkArgumentError.invalidCPUThreadCount
+            }
+            cpuThreadCount = threadCount
+        } else {
+            cpuThreadCount = nil
+        }
         switch value(after: "--backend", in: values) ?? "gpu" {
         case "gpu": backend = .gpu
-        case "cpu": backend = .cpu()
+        case "cpu": backend = .cpu(threadCount: cpuThreadCount)
         default: throw BenchmarkArgumentError.invalidBackend
         }
 
@@ -190,14 +225,17 @@ private enum MachineIdentity {
 private enum BenchmarkArgumentError: Error, CustomStringConvertible {
     case usage
     case invalidBackend
+    case invalidCPUThreadCount
     case invalidSplit
 
     var description: String {
         switch self {
         case .usage:
-            "Usage: swift run SwiftMendBenchmark --model <model.litertlm> --output <report.json> [--manifest <custom-model-manifest.json>] [--dataset <dataset.json>] [--split training|validation|test|all] [--backend gpu|cpu] [--cache <directory>]"
+            "Usage: swift run SwiftMendBenchmark --model <model.litertlm> --output <report.json> [--manifest <custom-model-manifest.json>] [--dataset <dataset.json>] [--split training|validation|test|all] [--backend gpu|cpu] [--cpu-threads <positive-count>] [--cache <directory>]"
         case .invalidBackend:
             "Backend must be gpu or cpu."
+        case .invalidCPUThreadCount:
+            "CPU thread count must be a positive integer."
         case .invalidSplit:
             "Split must be training, validation, test, or all."
         }

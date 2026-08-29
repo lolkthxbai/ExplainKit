@@ -61,13 +61,17 @@ final class LiteRTGemmaTextGenerator: @unchecked Sendable, LocalGemmaTextGenerat
         defer { litert_lm_session_config_delete(sessionConfiguration) }
         litert_lm_session_config_set_apply_prompt_template(sessionConfiguration, true)
 
-        // LiteRT-LM 0.16 does not implement its Greedy sampler on every backend.
-        // Top-k with k = 1 is the same deterministic argmax selection.
-        guard let sampler = litert_lm_sampler_params_create(kLiteRtLmSamplerTypeTopK) else {
+        // LiteRT-LM 0.16 does not implement its Greedy or TopK samplers on every
+        // backend. Top-p with k = 1 and zero temperature is the same
+        // deterministic argmax selection on both CPU and GPU.
+        guard let sampler = litert_lm_sampler_params_create(kLiteRtLmSamplerTypeTopP) else {
             throw LocalGemmaProviderError.generationFailed
         }
         defer { litert_lm_sampler_params_delete(sampler) }
         litert_lm_sampler_params_set_top_k(sampler, 1)
+        litert_lm_sampler_params_set_top_p(sampler, 1)
+        litert_lm_sampler_params_set_temperature(sampler, 0)
+        litert_lm_sampler_params_set_seed(sampler, 0)
         litert_lm_session_config_set_sampler_params(sessionConfiguration, sampler)
 
         guard let conversationConfiguration = litert_lm_conversation_config_create() else {
