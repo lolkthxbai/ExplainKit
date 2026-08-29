@@ -45,6 +45,12 @@ struct GemmaRecoveryModelProviderTests {
         #expect(requestJSON.contains("approvedActions"))
         #expect(requestJSON.contains("actionIDs"))
         #expect(requestJSON.contains("thinkingLevel"))
+        #expect(requestJSON.contains("minimal"))
+        #expect(requestJSON.contains("\"temperature\":0"))
+        #expect(requestJSON.contains("\"candidateCount\":1"))
+        #expect(requestJSON.contains("responseMimeType") == false)
+        #expect(requestJSON.contains("responseSchema") == false)
+        #expect(requestJSON.contains("responseJsonSchema") == false)
     }
 
     @Test("A fenced actionIDs JSON response becomes recovery advice", .tags(.networking))
@@ -139,6 +145,9 @@ struct GemmaRecoveryModelProviderTests {
         }
         #expect(throws: GemmaProviderError.invalidConfiguration) {
             try GemmaRecoveryModelProvider(apiKey: "test-api-key", model: "../../other-model", client: StubHTTPClient.unused)
+        }
+        #expect(throws: GemmaProviderError.invalidConfiguration) {
+            try GemmaRecoveryModelProvider(apiKey: "test-api-key", model: "gemini-3.7-flash", client: StubHTTPClient.unused)
         }
     }
 
