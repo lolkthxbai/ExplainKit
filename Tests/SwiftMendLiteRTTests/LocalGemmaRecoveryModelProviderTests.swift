@@ -113,6 +113,63 @@ struct LocalGemmaRecoveryModelProviderTests {
         #expect(model.parameterCount == 1_000_000_000)
     }
 
+    @Test("The general configuration retains the pinned 1B GPU default")
+    func generalConfigurationRetains1BDefault() {
+        let configuration = LocalGemmaConfiguration(
+            modelURL: URL(filePath: "/tmp/gemma3-1b-it-int4.litertlm"),
+            cacheURL: URL(filePath: "/tmp/cache")
+        )
+
+        #expect(configuration.model == .gemma3_1BInstructionTunedQAT4Bit)
+        #expect(configuration.backend == .gpu)
+        #expect(configuration.verifiesModelChecksum)
+    }
+
+    @Test("The verified 270M descriptor pins the converted recovery artifact")
+    func verified270MModelDescriptorIsExact() {
+        let model = LocalGemmaModelDescriptor.swiftMendGemma3_270MRecovery
+
+        #expect(model.id == "swiftmend/gemma-3-270m-recovery")
+        #expect(
+            model.revision
+                == "2cca65c67604e87c13a0235d9a7237be558de71bd819f6c4a11c55441230b4cb"
+        )
+        #expect(model.fileName == "model.litertlm")
+        #expect(model.fileSize == 284_700_672)
+        #expect(
+            model.sha256
+                == "9e7aa6f19e3342a13f56e3ac3241996094e962721c1b4fa4fa5043442b140ee0"
+        )
+        #expect(model.parameterCount == 270_000_000)
+    }
+
+    @Test("The verified 270M preset always selects the CPU backend")
+    func verified270MPresetUsesCPU() {
+        let configuration = LocalGemmaConfiguration.swiftMendGemma3_270MRecovery(
+            modelURL: URL(filePath: "/tmp/model.litertlm"),
+            cacheURL: URL(filePath: "/tmp/cache"),
+            cpuThreadCount: 4
+        )
+
+        #expect(configuration.model == .swiftMendGemma3_270MRecovery)
+        #expect(configuration.backend == .cpu(threadCount: 4))
+        #expect(configuration.verifiesModelChecksum)
+    }
+
+    @Test("The verified 270M artifact rejects the unsupported GPU backend")
+    func verified270MArtifactRejectsGPU() async {
+        let configuration = LocalGemmaConfiguration(
+            modelURL: URL(filePath: "/tmp/model.litertlm"),
+            model: .swiftMendGemma3_270MRecovery,
+            backend: .gpu,
+            cacheURL: URL(filePath: "/tmp/cache")
+        )
+
+        await #expect(throws: LocalGemmaProviderError.invalidConfiguration) {
+            try await LocalGemmaRecoveryModelProvider.load(configuration: configuration)
+        }
+    }
+
     @Test("The C bridge receives system content rather than a nested message")
     func systemContentPayloadMatchesConversationAPI() throws {
         let instruction = "Return approved recovery action IDs only."

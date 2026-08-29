@@ -196,6 +196,12 @@ final class LiteRTGemmaTextGenerator: @unchecked Sendable, LocalGemmaTextGenerat
             throw LocalGemmaProviderError.invalidConfiguration
         }
 
+        if configuration.model.sha256.lowercased()
+            == LocalGemmaModelDescriptor.swiftMendGemma3_270MRecovery.sha256,
+           case .gpu = configuration.backend {
+            throw LocalGemmaProviderError.invalidConfiguration
+        }
+
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(
             atPath: configuration.modelURL.path,

@@ -38,6 +38,16 @@ public struct LocalGemmaModelDescriptor: Codable, Equatable, Sendable {
         sha256: "1325ae366d31950f137c9c357b9fa89448b176d76998180c08ceaca78bba98be",
         parameterCount: 1_000_000_000
     )
+
+    /// The exact fine-tuned artifact that passed SwiftMend's held-out CPU evaluation.
+    public static let swiftMendGemma3_270MRecovery = LocalGemmaModelDescriptor(
+        id: "swiftmend/gemma-3-270m-recovery",
+        revision: "2cca65c67604e87c13a0235d9a7237be558de71bd819f6c4a11c55441230b4cb",
+        fileName: "model.litertlm",
+        fileSize: 284_700_672,
+        sha256: "9e7aa6f19e3342a13f56e3ac3241996094e962721c1b4fa4fa5043442b140ee0",
+        parameterCount: 270_000_000
+    )
 }
 
 public struct LocalGemmaModelManifest: Codable, Equatable, Sendable {
@@ -139,6 +149,24 @@ public struct LocalGemmaConfiguration: Equatable, Sendable {
         self.maximumContextTokens = maximumContextTokens
         self.maximumOutputTokens = maximumOutputTokens
         self.verifiesModelChecksum = verifiesModelChecksum
+    }
+
+    /// Creates a checksum-verifying CPU configuration for the verified 270M artifact.
+    public static func swiftMendGemma3_270MRecovery(
+        modelURL: URL,
+        cacheURL: URL,
+        cpuThreadCount: Int? = nil,
+        maximumContextTokens: Int = 2_048,
+        maximumOutputTokens: Int = 256
+    ) -> LocalGemmaConfiguration {
+        LocalGemmaConfiguration(
+            modelURL: modelURL,
+            model: .swiftMendGemma3_270MRecovery,
+            backend: .cpu(threadCount: cpuThreadCount),
+            cacheURL: cacheURL,
+            maximumContextTokens: maximumContextTokens,
+            maximumOutputTokens: maximumOutputTokens
+        )
     }
 }
 

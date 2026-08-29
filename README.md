@@ -189,6 +189,23 @@ let provider = try await LocalGemmaRecoveryModelProvider.load(
 )
 ```
 
+That initializer keeps the pinned 1B/GPU provider as the package default. The
+fine-tuned 270M candidate that passed the held-out evaluation is available as an
+explicit CPU-only preset:
+
+```swift
+let configuration = LocalGemmaConfiguration.swiftMendGemma3_270MRecovery(
+    modelURL: converted270MModelURL,
+    cacheURL: cacheURL
+)
+```
+
+The preset pins the exact converted artifact's revision, byte size, and SHA-256
+digest, enables checksum verification, and selects the CPU backend. Loading that
+artifact through a manually constructed GPU configuration fails with
+`invalidConfiguration` before LiteRT-LM initializes because the verified graph
+does not produce usable output on Apple's GPU path.
+
 Loading verifies the pinned file size and SHA-256 digest before initializing
 LiteRT-LM. Generation uses top-p decoding with k = 1, p = 1, temperature = 0,
 and seed = 0. This is deterministic argmax selection and works with both the
@@ -197,9 +214,7 @@ JSON schema's action-ID enum comes from the developer's catalog. The provider
 then performs the same canonical action mapping as the hosted provider, while
 `RecoveryEngine` remains the final enforcement and fallback boundary.
 
-The verified 1B-versus-270M comparison uses the CPU backend. The locally
-converted 270M graph currently emits only padding tokens through LiteRT-LM's
-Apple GPU path, so that artifact must remain CPU-only.
+The verified 1B-versus-270M comparison uses the CPU backend.
 
 The Swift package links the official LiteRT-LM 0.16.0 release XCFrameworks
 directly. This avoids a Git LFS packaging problem in that release's Swift

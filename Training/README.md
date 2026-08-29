@@ -139,3 +139,10 @@ baseline scored 21.4%, 92.9%, and 7.1%, respectively. The 270M p95 latency was
 1.70 seconds versus 4.26 seconds, and peak memory was 1,883 MiB versus
 2,844 MiB.
 A default-model switch still requires an explicit product decision.
+
+The package now exposes the verified artifact as
+`LocalGemmaModelDescriptor.swiftMendGemma3_270MRecovery` and provides
+`LocalGemmaConfiguration.swiftMendGemma3_270MRecovery(modelURL:cacheURL:)` for
+explicit CPU evaluation or adoption. The general configuration still defaults
+to the pinned 1B/GPU provider until that product decision is made. The 270M
+artifact is rejected if paired with the GPU backend.
