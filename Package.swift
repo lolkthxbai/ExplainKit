@@ -7,6 +7,10 @@ let package = Package(
     products: [
         .library(name: "SwiftMend", targets: ["SwiftMend"]),
         .library(name: "SwiftMendLiteRT", targets: ["SwiftMendLiteRT"]),
+        .library(name: "SwiftMendEvaluation", targets: ["SwiftMendEvaluation"]),
+        .executable(name: "SwiftMendBenchmark", targets: ["SwiftMendBenchmark"]),
+        .executable(name: "SwiftMendDatasetTool", targets: ["SwiftMendDatasetTool"]),
+        .executable(name: "SwiftMendCompare", targets: ["SwiftMendCompare"]),
         .executable(name: "SwiftMendDemo", targets: ["SwiftMendDemo"])
     ],
     targets: [
@@ -29,11 +33,32 @@ let package = Package(
                 .target(name: "CLiteRTLM_mac", condition: .when(platforms: [.macOS]))
             ]
         ),
+        .target(
+            name: "SwiftMendEvaluation",
+            dependencies: ["SwiftMend"],
+            resources: [.copy("Resources")]
+        ),
+        .executableTarget(
+            name: "SwiftMendBenchmark",
+            dependencies: ["SwiftMend", "SwiftMendEvaluation", "SwiftMendLiteRT"]
+        ),
+        .executableTarget(
+            name: "SwiftMendDatasetTool",
+            dependencies: ["SwiftMendEvaluation"]
+        ),
+        .executableTarget(
+            name: "SwiftMendCompare",
+            dependencies: ["SwiftMendEvaluation"]
+        ),
         .executableTarget(name: "SwiftMendDemo", dependencies: ["SwiftMend"]),
         .testTarget(name: "SwiftMendTests", dependencies: ["SwiftMend", "SwiftMendDemo"]),
         .testTarget(
             name: "SwiftMendLiteRTTests",
             dependencies: ["SwiftMend", "SwiftMendLiteRT"]
+        ),
+        .testTarget(
+            name: "SwiftMendEvaluationTests",
+            dependencies: ["SwiftMend", "SwiftMendEvaluation"]
         )
     ]
 )

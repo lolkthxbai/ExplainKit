@@ -1,0 +1,1202 @@
+{
+  "schemaVersion": 1,
+  "datasetVersion": "1.0.0",
+  "scenarios": [
+    {
+      "id": "password-too-short",
+      "category": "password",
+      "split": "training",
+      "snapshot": {
+        "domain": "DemoAuth",
+        "code": 1001,
+        "message": "Password rejected",
+        "debugDescription": "Minimum password length policy failed"
+      },
+      "context": {
+        "feature": "account creation",
+        "attributes": {
+          "minimumLength": "12"
+        }
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "edit-password",
+          "title": "Edit Password"
+        },
+        {
+          "id": "view-requirements",
+          "title": "View Password Requirements"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "edit-password"
+        ],
+        [
+          "edit-password",
+          "view-requirements"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Use a Longer Password",
+        "message": "Create a password with at least 12 characters.",
+        "actions": [
+          {
+            "id": "edit-password",
+            "title": "Edit Password"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "password-compromised",
+      "category": "password",
+      "split": "validation",
+      "snapshot": {
+        "domain": "DemoAuth",
+        "code": 1002,
+        "message": "Password cannot be used",
+        "debugDescription": "Password appeared in a known compromised-password list"
+      },
+      "context": {
+        "feature": "password update",
+        "attributes": {}
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "choose-new-password",
+          "title": "Choose a Different Password"
+        },
+        {
+          "id": "learn-more",
+          "title": "Learn More"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "choose-new-password"
+        ],
+        [
+          "choose-new-password",
+          "learn-more"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Choose a Different Password",
+        "message": "This password is known to be compromised. Use one you have not used elsewhere.",
+        "actions": [
+          {
+            "id": "choose-new-password",
+            "title": "Choose a Different Password"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "password-symbol-required",
+      "category": "password",
+      "split": "test",
+      "snapshot": {
+        "domain": "DemoAuth",
+        "code": 1003,
+        "message": "Password does not meet requirements",
+        "debugDescription": "Password policy requires a symbol"
+      },
+      "context": {
+        "feature": "account creation",
+        "attributes": {
+          "requiredCharacterType": "symbol"
+        }
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "edit-password",
+          "title": "Edit Password"
+        },
+        {
+          "id": "view-requirements",
+          "title": "View Password Requirements"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "edit-password"
+        ],
+        [
+          "edit-password",
+          "view-requirements"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Add a Symbol",
+        "message": "Add at least one symbol to meet the password requirements.",
+        "actions": [
+          {
+            "id": "edit-password",
+            "title": "Edit Password"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "authentication-session-expired",
+      "category": "authentication",
+      "split": "training",
+      "snapshot": {
+        "domain": "DemoSession",
+        "code": 1101,
+        "message": "Session expired",
+        "debugDescription": "The authentication token is no longer valid"
+      },
+      "context": {
+        "feature": "account session",
+        "attributes": {}
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "sign-in-again",
+          "title": "Sign In Again"
+        },
+        {
+          "id": "cancel",
+          "title": "Cancel"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "sign-in-again"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Sign In Again",
+        "message": "Your session ended. Sign in again to continue.",
+        "actions": [
+          {
+            "id": "sign-in-again",
+            "title": "Sign In Again"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "authentication-code-rejected",
+      "category": "authentication",
+      "split": "validation",
+      "snapshot": {
+        "domain": "DemoMFA",
+        "code": 1102,
+        "message": "Verification code rejected",
+        "debugDescription": "The one-time verification code was invalid"
+      },
+      "context": {
+        "feature": "two-factor authentication",
+        "attributes": {
+          "deliveryMethod": "text message"
+        }
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "retry-code",
+          "title": "Enter Code Again"
+        },
+        {
+          "id": "request-new-code",
+          "title": "Request a New Code"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "retry-code"
+        ],
+        [
+          "request-new-code"
+        ],
+        [
+          "retry-code",
+          "request-new-code"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Enter the Code Again",
+        "message": "Check the verification code and enter it again.",
+        "actions": [
+          {
+            "id": "retry-code",
+            "title": "Enter Code Again"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "authentication-account-locked",
+      "category": "authentication",
+      "split": "test",
+      "snapshot": {
+        "domain": "DemoAuth",
+        "code": 1103,
+        "message": "Account temporarily locked",
+        "debugDescription": "Too many unsuccessful sign-in attempts"
+      },
+      "context": {
+        "feature": "sign in",
+        "attributes": {
+          "lockDurationMinutes": "15"
+        }
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "reset-password",
+          "title": "Reset Password"
+        },
+        {
+          "id": "contact-support",
+          "title": "Contact Support"
+        },
+        {
+          "id": "try-later",
+          "title": "Try Again Later"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "try-later"
+        ],
+        [
+          "reset-password"
+        ],
+        [
+          "contact-support"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Wait Before Trying Again",
+        "message": "The account is temporarily locked. Wait 15 minutes before signing in again.",
+        "actions": [
+          {
+            "id": "try-later",
+            "title": "Try Again Later"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "networking-offline",
+      "category": "networking",
+      "split": "training",
+      "snapshot": {
+        "domain": "NSURLErrorDomain",
+        "code": -1009,
+        "message": "Internet connection appears to be offline",
+        "debugDescription": "A network path is not currently satisfied"
+      },
+      "context": {
+        "feature": "profile sync",
+        "attributes": {}
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "open-settings",
+          "title": "Open Network Settings"
+        },
+        {
+          "id": "retry",
+          "title": "Try Again"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "open-settings"
+        ],
+        [
+          "retry"
+        ],
+        [
+          "open-settings",
+          "retry"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Reconnect to the Internet",
+        "message": "Connect to Wi-Fi or cellular data, then retry the request.",
+        "actions": [
+          {
+            "id": "open-settings",
+            "title": "Open Network Settings"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "networking-timeout",
+      "category": "networking",
+      "split": "validation",
+      "snapshot": {
+        "domain": "NSURLErrorDomain",
+        "code": -1001,
+        "message": "The request timed out",
+        "debugDescription": "The service did not respond before the timeout"
+      },
+      "context": {
+        "feature": "order history",
+        "attributes": {}
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "retry",
+          "title": "Try Again"
+        },
+        {
+          "id": "check-status",
+          "title": "Check Service Status"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "retry"
+        ],
+        [
+          "check-status"
+        ],
+        [
+          "retry",
+          "check-status"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Try the Request Again",
+        "message": "The service did not respond in time. Retry the request.",
+        "actions": [
+          {
+            "id": "retry",
+            "title": "Try Again"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "networking-clock-tls",
+      "category": "networking",
+      "split": "test",
+      "snapshot": {
+        "domain": "NSURLErrorDomain",
+        "code": -1200,
+        "message": "A secure connection could not be made",
+        "debugDescription": "Certificate validation failed because the device clock differs significantly"
+      },
+      "context": {
+        "feature": "secure sign in",
+        "attributes": {}
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "open-date-settings",
+          "title": "Check Date & Time Settings"
+        },
+        {
+          "id": "cancel",
+          "title": "Cancel"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "open-date-settings"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Check Date and Time",
+        "message": "Set the device date and time correctly before reconnecting.",
+        "actions": [
+          {
+            "id": "open-date-settings",
+            "title": "Check Date & Time Settings"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "permissions-photos-denied",
+      "category": "permissions",
+      "split": "training",
+      "snapshot": {
+        "domain": "DemoPermissions",
+        "code": 1201,
+        "message": "Photo access is unavailable",
+        "debugDescription": "The user denied photo-library access"
+      },
+      "context": {
+        "feature": "profile photo",
+        "attributes": {}
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "open-settings",
+          "title": "Open App Settings"
+        },
+        {
+          "id": "cancel",
+          "title": "Not Now"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "open-settings"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Allow Photo Access",
+        "message": "Open app settings and allow access to your photos.",
+        "actions": [
+          {
+            "id": "open-settings",
+            "title": "Open App Settings"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "permissions-camera-restricted",
+      "category": "permissions",
+      "split": "validation",
+      "snapshot": {
+        "domain": "DemoPermissions",
+        "code": 1202,
+        "message": "Camera is unavailable",
+        "debugDescription": "Camera access is restricted on this device"
+      },
+      "context": {
+        "feature": "receipt capture",
+        "attributes": {}
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "use-photo-library",
+          "title": "Choose from Photo Library"
+        },
+        {
+          "id": "cancel",
+          "title": "Cancel"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "use-photo-library"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Choose an Existing Photo",
+        "message": "The camera is restricted, so choose a photo from your library instead.",
+        "actions": [
+          {
+            "id": "use-photo-library",
+            "title": "Choose from Photo Library"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "permissions-location-denied",
+      "category": "permissions",
+      "split": "test",
+      "snapshot": {
+        "domain": "DemoPermissions",
+        "code": 1203,
+        "message": "Location access is off",
+        "debugDescription": "The app is not authorized to use location services"
+      },
+      "context": {
+        "feature": "store finder",
+        "attributes": {}
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "open-settings",
+          "title": "Open App Settings"
+        },
+        {
+          "id": "use-manual-location",
+          "title": "Enter Location Manually"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "open-settings"
+        ],
+        [
+          "use-manual-location"
+        ],
+        [
+          "open-settings",
+          "use-manual-location"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Enter a Location",
+        "message": "Enter your location manually to find nearby stores.",
+        "actions": [
+          {
+            "id": "open-settings",
+            "title": "Open App Settings"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "storage-upload-too-large",
+      "category": "storage",
+      "split": "training",
+      "snapshot": {
+        "domain": "DemoUpload",
+        "code": 3001,
+        "message": "The photo could not be uploaded",
+        "debugDescription": "The selected file is 18 MB and the upload limit is 10 MB"
+      },
+      "context": {
+        "feature": "photo upload",
+        "attributes": {
+          "fileSizeMB": "18",
+          "limitMB": "10"
+        }
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "choose-smaller-photo",
+          "title": "Choose a Smaller Photo"
+        },
+        {
+          "id": "compress-photo",
+          "title": "Compress Photo"
+        },
+        {
+          "id": "try-again",
+          "title": "Try Again"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "choose-smaller-photo"
+        ],
+        [
+          "compress-photo"
+        ],
+        [
+          "choose-smaller-photo",
+          "compress-photo"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Choose a Smaller Photo",
+        "message": "The selected photo is 18 MB. Choose one under the 10 MB upload limit.",
+        "actions": [
+          {
+            "id": "choose-smaller-photo",
+            "title": "Choose a Smaller Photo"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "storage-device-full",
+      "category": "storage",
+      "split": "validation",
+      "snapshot": {
+        "domain": "NSCocoaErrorDomain",
+        "code": 640,
+        "message": "The file could not be saved",
+        "debugDescription": "The device has insufficient available storage"
+      },
+      "context": {
+        "feature": "offline download",
+        "attributes": {}
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "manage-storage",
+          "title": "Manage Device Storage"
+        },
+        {
+          "id": "cancel-download",
+          "title": "Cancel Download"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "manage-storage"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Free Up Device Storage",
+        "message": "Make space on the device before starting the download again.",
+        "actions": [
+          {
+            "id": "manage-storage",
+            "title": "Manage Device Storage"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "storage-cache-limit",
+      "category": "storage",
+      "split": "test",
+      "snapshot": {
+        "domain": "DemoStorage",
+        "code": 1303,
+        "message": "No more items can be downloaded",
+        "debugDescription": "The app offline-download limit has been reached"
+      },
+      "context": {
+        "feature": "offline library",
+        "attributes": {
+          "downloadLimit": "25"
+        }
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "clear-downloads",
+          "title": "Manage Downloads"
+        },
+        {
+          "id": "cancel",
+          "title": "Cancel"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "clear-downloads"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Manage Downloads",
+        "message": "Remove an existing offline download before adding another.",
+        "actions": [
+          {
+            "id": "clear-downloads",
+            "title": "Manage Downloads"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "payments-card-declined",
+      "category": "payments",
+      "split": "training",
+      "snapshot": {
+        "domain": "DemoPayments",
+        "code": 1401,
+        "message": "Payment was declined",
+        "debugDescription": "The payment processor declined the card without a retry recommendation"
+      },
+      "context": {
+        "feature": "checkout",
+        "attributes": {}
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "use-another-card",
+          "title": "Use a Different Card"
+        },
+        {
+          "id": "contact-bank",
+          "title": "Contact Your Bank"
+        },
+        {
+          "id": "cancel",
+          "title": "Cancel"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "use-another-card"
+        ],
+        [
+          "contact-bank"
+        ],
+        [
+          "use-another-card",
+          "contact-bank"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Use a Different Card",
+        "message": "The card was declined. Choose another payment method to continue.",
+        "actions": [
+          {
+            "id": "use-another-card",
+            "title": "Use a Different Card"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "payments-duplicate-protection",
+      "category": "payments",
+      "split": "validation",
+      "snapshot": {
+        "domain": "DemoPayments",
+        "code": 1402,
+        "message": "Payment was not submitted",
+        "debugDescription": "A recent order may already contain this payment"
+      },
+      "context": {
+        "feature": "checkout",
+        "attributes": {}
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "check-orders",
+          "title": "Check Recent Orders"
+        },
+        {
+          "id": "contact-support",
+          "title": "Contact Support"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "check-orders"
+        ],
+        [
+          "check-orders",
+          "contact-support"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Check Recent Orders",
+        "message": "Review recent orders before submitting the payment again.",
+        "actions": [
+          {
+            "id": "check-orders",
+            "title": "Check Recent Orders"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "payments-verification-required",
+      "category": "payments",
+      "split": "test",
+      "snapshot": {
+        "domain": "DemoPayments",
+        "code": 1403,
+        "message": "Payment needs verification",
+        "debugDescription": "The card issuer requires additional authentication"
+      },
+      "context": {
+        "feature": "checkout",
+        "attributes": {}
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "verify-payment",
+          "title": "Verify Payment"
+        },
+        {
+          "id": "use-another-card",
+          "title": "Use a Different Card"
+        },
+        {
+          "id": "cancel",
+          "title": "Cancel"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "verify-payment"
+        ],
+        [
+          "use-another-card"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Verify the Payment",
+        "message": "Complete the card issuer's verification step to continue.",
+        "actions": [
+          {
+            "id": "verify-payment",
+            "title": "Verify Payment"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "service-pickup-unavailable",
+      "category": "service-failures",
+      "split": "training",
+      "snapshot": {
+        "domain": "DemoCheckout",
+        "code": 2001,
+        "message": "The checkout request could not be completed",
+        "debugDescription": "The selected store cannot currently fulfill pickup"
+      },
+      "context": {
+        "feature": "checkout",
+        "attributes": {
+          "fulfillment": "store pickup"
+        }
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "home-delivery",
+          "title": "Select Home Delivery"
+        },
+        {
+          "id": "different-store",
+          "title": "Choose a Different Store"
+        },
+        {
+          "id": "try-later",
+          "title": "Try Again Later"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "home-delivery"
+        ],
+        [
+          "different-store"
+        ],
+        [
+          "home-delivery",
+          "different-store"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Choose Home Delivery",
+        "message": "Store pickup is unavailable for this order. Select home delivery instead.",
+        "actions": [
+          {
+            "id": "home-delivery",
+            "title": "Select Home Delivery"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "service-maintenance",
+      "category": "service-failures",
+      "split": "validation",
+      "snapshot": {
+        "domain": "DemoService",
+        "code": 1502,
+        "message": "The service is temporarily unavailable",
+        "debugDescription": "Scheduled maintenance is in progress"
+      },
+      "context": {
+        "feature": "account dashboard",
+        "attributes": {
+          "estimatedMinutes": "20"
+        }
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "try-later",
+          "title": "Try Again Later"
+        },
+        {
+          "id": "check-status",
+          "title": "Check Service Status"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "try-later"
+        ],
+        [
+          "check-status"
+        ],
+        [
+          "try-later",
+          "check-status"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Try Again Later",
+        "message": "The service is undergoing maintenance. Try again after the maintenance window.",
+        "actions": [
+          {
+            "id": "try-later",
+            "title": "Try Again Later"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    },
+    {
+      "id": "service-inventory-changed",
+      "category": "service-failures",
+      "split": "test",
+      "snapshot": {
+        "domain": "DemoInventory",
+        "code": 1503,
+        "message": "Some items are no longer available",
+        "debugDescription": "Inventory changed before the order was submitted"
+      },
+      "context": {
+        "feature": "checkout",
+        "attributes": {}
+      },
+      "rules": [],
+      "approvedActions": [
+        {
+          "id": "review-cart",
+          "title": "Review Cart"
+        },
+        {
+          "id": "remove-unavailable",
+          "title": "Remove Unavailable Items"
+        }
+      ],
+      "acceptableActionIDSets": [
+        [
+          "review-cart"
+        ],
+        [
+          "remove-unavailable"
+        ],
+        [
+          "review-cart",
+          "remove-unavailable"
+        ]
+      ],
+      "referenceAdvice": {
+        "title": "Review Your Cart",
+        "message": "Availability changed before checkout. Review the cart before submitting the order again.",
+        "actions": [
+          {
+            "id": "review-cart",
+            "title": "Review Cart"
+          }
+        ]
+      },
+      "fallbackAdvice": {
+        "title": "Try again later",
+        "message": "The app could not complete this request.",
+        "actions": [
+          {
+            "id": "dismiss",
+            "title": "Dismiss"
+          }
+        ]
+      }
+    }
+  ]
+}
