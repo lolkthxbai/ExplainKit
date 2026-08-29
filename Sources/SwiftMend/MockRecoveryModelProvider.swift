@@ -14,7 +14,7 @@ public struct MockRecoveryModelProvider: RecoveryModelProviding {
         self.result = .failure(failure)
     }
 
-    public func recoveryAdvice(for snapshot: ErrorSnapshot, context: RecoveryContext) async throws -> RecoveryAdvice {
+    public func recoveryAdvice(for request: RecoveryModelRequest) async throws -> RecoveryAdvice {
         try result.get()
     }
 }

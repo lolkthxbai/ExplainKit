@@ -26,7 +26,7 @@ struct ContentView: View {
                             scenario: scenario,
                             outcome: outcomes[scenario],
                             isRunning: runningScenarios.contains(scenario),
-                            isLiveGemmaConfigured: configuration.isLiveGemmaConfigured,
+                            isGemmaConfigured: configuration.isLiveGemmaConfigured,
                             run: { run(scenario) }
                         )
                     }
@@ -44,7 +44,7 @@ struct ContentView: View {
         Task { @MainActor in
             let outcome = await scenario.run(
                 using: diagnosticSource,
-                modelProvider: scenario == .liveGemma ? configuration.gemmaProvider : nil
+                modelProvider: scenario.usesGemma ? configuration.gemmaProvider : nil
             )
             guard Task.isCancelled == false else {
                 runningScenarios.remove(scenario)

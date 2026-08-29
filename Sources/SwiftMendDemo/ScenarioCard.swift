@@ -4,7 +4,7 @@ struct ScenarioCard: View {
     let scenario: DemoScenario
     let outcome: DemoOutcome?
     let isRunning: Bool
-    let isLiveGemmaConfigured: Bool
+    let isGemmaConfigured: Bool
     let run: () -> Void
 
     var body: some View {
@@ -13,12 +13,12 @@ struct ScenarioCard: View {
                 Label(scenario.subtitle, systemImage: scenario.symbol)
                     .foregroundStyle(.secondary)
 
-                if scenario == .liveGemma {
+                if scenario.usesGemma {
                     Label(
-                        isLiveGemmaConfigured ? "GEMINI_API_KEY available" : "GEMINI_API_KEY missing — local fallback will be used",
-                        systemImage: isLiveGemmaConfigured ? "checkmark.circle.fill" : "exclamationmark.triangle.fill"
+                        isGemmaConfigured ? "GEMINI_API_KEY available" : "GEMINI_API_KEY missing — local fallback will be used",
+                        systemImage: isGemmaConfigured ? "checkmark.circle.fill" : "exclamationmark.triangle.fill"
                     )
-                    .foregroundStyle(isLiveGemmaConfigured ? .green : .orange)
+                    .foregroundStyle(isGemmaConfigured ? .green : .orange)
                     .font(.callout)
                 }
 

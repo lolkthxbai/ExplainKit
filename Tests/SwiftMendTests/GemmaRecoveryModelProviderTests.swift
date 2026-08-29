@@ -7,11 +7,18 @@ extension Tag {
 }
 
 struct GemmaRecoveryModelProviderTests {
-    @Test("A valid Gemma response becomes recovery advice", .tags(.networking))
+    private let approvedActions = [
+        RecoveryAction(id: "check-wifi", title: "Check Wi-Fi"),
+        RecoveryAction(id: "try-again", title: "Try Again"),
+        RecoveryAction(id: "open-settings", title: "Open Settings"),
+        RecoveryAction(id: "contact-support", title: "Contact Support")
+    ]
+
+    @Test("A valid raw actionIDs response maps to canonical actions", .tags(.networking))
     func validResponseBecomesAdvice() async throws {
         let recorder = RequestRecorder()
         let responseData = try responseData(
-            text: #"{"title":"Check your connection","message":"Reconnect, then retry.","actions":["Check Wi-Fi","Try Again"]}"#
+            text: #"{"title":"Check your connection","message":"Reconnect, then retry.","actionIDs":["check-wifi","try-again"]}"#
         )
         let client = StubHTTPClient { request in
             await recorder.record(request)
@@ -23,28 +30,29 @@ struct GemmaRecoveryModelProviderTests {
             client: client
         )
 
-        let advice = try await provider.recoveryAdvice(
-            for: ErrorSnapshot(domain: NSURLErrorDomain, code: NSURLErrorNotConnectedToInternet, message: "Offline"),
-            context: RecoveryContext(feature: "profile sync")
-        )
+        let advice = try await provider.recoveryAdvice(for: modelRequest())
         let request = try #require(await recorder.request)
         let requestBody = try #require(request.httpBody)
         let requestJSON = try #require(String(data: requestBody, encoding: .utf8))
 
         #expect(advice.title == "Check your connection")
-        #expect(advice.actions.map(\.title) == ["Check Wi-Fi", "Try Again"])
+        #expect(advice.actions == Array(approvedActions.prefix(2)))
         #expect(request.url?.absoluteString == "https://generativelanguage.googleapis.com/v1beta/models/gemma-4-26b-a4b-it:generateContent")
         #expect(request.value(forHTTPHeaderField: "x-goog-api-key") == "test-api-key")
         #expect(requestJSON.contains("profile sync"))
+        #expect(requestJSON.contains("check-wifi"))
+        #expect(requestJSON.contains("Check Wi-Fi"))
+        #expect(requestJSON.contains("approvedActions"))
+        #expect(requestJSON.contains("actionIDs"))
         #expect(requestJSON.contains("thinkingLevel"))
     }
 
-    @Test("A fenced JSON response becomes recovery advice", .tags(.networking))
+    @Test("A fenced actionIDs JSON response becomes recovery advice", .tags(.networking))
     func fencedJSONBecomesAdvice() async throws {
         let responseData = try responseData(
             text: """
             ```json
-            {"title":"Change delivery","message":"Select another option, then retry.","actions":["Change Delivery Option","Try Again"]}
+            {"title":"Change settings","message":"Open settings, then retry.","actionIDs":["open-settings","try-again"]}
             ```
             """
         )
@@ -53,54 +61,62 @@ struct GemmaRecoveryModelProviderTests {
         }
         let provider = try GemmaRecoveryModelProvider(apiKey: "test-api-key", client: client)
 
-        let advice = try await provider.recoveryAdvice(
-            for: ErrorSnapshot(domain: "DemoCheckout", code: 2001, message: "Checkout failed"),
-            context: RecoveryContext(feature: "checkout")
-        )
+        let advice = try await provider.recoveryAdvice(for: modelRequest())
 
-        #expect(advice.title == "Change delivery")
-        #expect(advice.actions.map(\.title) == ["Change Delivery Option", "Try Again"])
+        #expect(advice.title == "Change settings")
+        #expect(advice.actions == [approvedActions[2], approvedActions[1]])
+    }
+
+    @Test("An unknown action ID is rejected", .tags(.networking))
+    func unknownActionIDIsRejected() async throws {
+        try await expectInvalidResponse(
+            #"{"title":"Recover","message":"Choose an option.","actionIDs":["not-approved"]}"#
+        )
+    }
+
+    @Test("Duplicate action IDs are rejected", .tags(.networking))
+    func duplicateActionIDsAreRejected() async throws {
+        try await expectInvalidResponse(
+            #"{"title":"Recover","message":"Choose an option.","actionIDs":["try-again","try-again"]}"#
+        )
+    }
+
+    @Test("More than three action IDs are rejected", .tags(.networking))
+    func excessiveActionIDsAreRejected() async throws {
+        try await expectInvalidResponse(
+            #"{"title":"Recover","message":"Choose an option.","actionIDs":["check-wifi","try-again","open-settings","contact-support"]}"#
+        )
+    }
+
+    @Test("The old arbitrary action-string format is rejected", .tags(.networking))
+    func arbitraryActionStringsAreRejected() async throws {
+        try await expectInvalidResponse(
+            #"{"title":"Recover","message":"Choose an option.","actions":["Anything the model wants"]}"#
+        )
     }
 
     @Test("Malformed model output is rejected", .tags(.networking))
     func malformedOutputIsRejected() async throws {
-        let responseData = try responseData(text: "not-json")
-        let client = StubHTTPClient { request in
-            (responseData, try Self.httpResponse(for: request, statusCode: 200))
-        }
-        let provider = try GemmaRecoveryModelProvider(apiKey: "test-api-key", client: client)
-
-        do {
-            _ = try await provider.recoveryAdvice(
-                for: ErrorSnapshot(domain: "Demo", code: 1, message: "Failed"),
-                context: RecoveryContext(feature: "demo")
-            )
-            Issue.record("Expected malformed output to be rejected.")
-        } catch GemmaProviderError.invalidResponse {
-        } catch {
-            Issue.record("Wrong error thrown: \(error)")
-        }
+        try await expectInvalidResponse("not-json")
     }
 
-    @Test("More than three actions are rejected", .tags(.networking))
-    func excessiveActionsAreRejected() async throws {
-        let responseData = try responseData(
-            text: #"{"title":"Recover","message":"Choose an action.","actions":["One","Two","Three","Four"]}"#
-        )
-        let client = StubHTTPClient { request in
-            (responseData, try Self.httpResponse(for: request, statusCode: 200))
-        }
-        let provider = try GemmaRecoveryModelProvider(apiKey: "test-api-key", client: client)
+    @Test("Malformed approved-action catalogs fail before networking", .tags(.networking))
+    func malformedCatalogsAreRejected() async throws {
+        let provider = try GemmaRecoveryModelProvider(apiKey: "test-api-key", client: StubHTTPClient.unused)
+        let malformedCatalogs = [
+            [RecoveryAction(id: "", title: "Missing ID")],
+            [RecoveryAction(id: "retry", title: "   ")],
+            [
+                RecoveryAction(id: "retry", title: "Try Again"),
+                RecoveryAction(id: "retry", title: "Retry Request")
+            ],
+            []
+        ]
 
-        do {
-            _ = try await provider.recoveryAdvice(
-                for: ErrorSnapshot(domain: "Demo", code: 1, message: "Failed"),
-                context: RecoveryContext(feature: "demo")
-            )
-            Issue.record("Expected excessive actions to be rejected.")
-        } catch GemmaProviderError.invalidResponse {
-        } catch {
-            Issue.record("Wrong error thrown: \(error)")
+        for catalog in malformedCatalogs {
+            await #expect(throws: GemmaProviderError.invalidRequest) {
+                try await provider.recoveryAdvice(for: modelRequest(approvedActions: catalog))
+            }
         }
     }
 
@@ -111,15 +127,8 @@ struct GemmaRecoveryModelProviderTests {
         }
         let provider = try GemmaRecoveryModelProvider(apiKey: "test-api-key", client: client)
 
-        do {
-            _ = try await provider.recoveryAdvice(
-                for: ErrorSnapshot(domain: "Demo", code: 1, message: "Failed"),
-                context: RecoveryContext(feature: "demo")
-            )
-            Issue.record("Expected an HTTP failure.")
-        } catch GemmaProviderError.httpStatus(429) {
-        } catch {
-            Issue.record("Wrong error thrown: \(error)")
+        await #expect(throws: GemmaProviderError.httpStatus(429)) {
+            try await provider.recoveryAdvice(for: modelRequest())
         }
     }
 
@@ -131,6 +140,32 @@ struct GemmaRecoveryModelProviderTests {
         #expect(throws: GemmaProviderError.invalidConfiguration) {
             try GemmaRecoveryModelProvider(apiKey: "test-api-key", model: "../../other-model", client: StubHTTPClient.unused)
         }
+    }
+
+    private func expectInvalidResponse(_ text: String) async throws {
+        let responseData = try responseData(text: text)
+        let client = StubHTTPClient { request in
+            (responseData, try Self.httpResponse(for: request, statusCode: 200))
+        }
+        let provider = try GemmaRecoveryModelProvider(apiKey: "test-api-key", client: client)
+
+        await #expect(throws: GemmaProviderError.invalidResponse) {
+            try await provider.recoveryAdvice(for: modelRequest())
+        }
+    }
+
+    private func modelRequest(
+        approvedActions: [RecoveryAction]? = nil
+    ) -> RecoveryModelRequest {
+        RecoveryModelRequest(
+            snapshot: ErrorSnapshot(
+                domain: NSURLErrorDomain,
+                code: NSURLErrorNotConnectedToInternet,
+                message: "Offline"
+            ),
+            context: RecoveryContext(feature: "profile sync"),
+            approvedActions: approvedActions ?? self.approvedActions
+        )
     }
 
     private func responseData(text: String) throws -> Data {

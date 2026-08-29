@@ -1,4 +1,8 @@
 .build/
 .swiftpm/
 .DS_Store
+__pycache__/
 Examples/SwiftMendDemoApp/Configurations/Secrets.xcconfig
+*.litertlm
+Evaluation/Reports/
+Training/Output/
