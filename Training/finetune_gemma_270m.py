@@ -3,6 +3,7 @@ import hashlib
 import importlib.metadata
 import json
 import os
+import platform
 from pathlib import Path
 
 MODEL_ID = "google/gemma-3-270m-it"
@@ -16,6 +17,12 @@ def parse_arguments():
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--epochs", type=float, default=5)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--device",
+        choices=("auto", "cuda", "mps"),
+        default="auto",
+        help="Training accelerator. Auto prefers CUDA, then Apple MPS.",
+    )
     return parser.parse_args()
 
 
@@ -51,17 +58,61 @@ def validate_records(dataset, label):
     return scenario_ids
 
 
+def select_training_backend(torch_module, requested):
+    cuda_available = torch_module.cuda.is_available()
+    mps = getattr(torch_module.backends, "mps", None)
+    mps_available = mps is not None and mps.is_available()
+
+    if requested == "cuda":
+        if not cuda_available:
+            raise RuntimeError("CUDA was requested but is not available.")
+        return "cuda"
+    if requested == "mps":
+        if not mps_available:
+            raise RuntimeError("MPS was requested but is not available.")
+        return "mps"
+    if cuda_available:
+        return "cuda"
+    if mps_available:
+        return "mps"
+    raise RuntimeError("Training requires either a CUDA GPU or Apple MPS.")
+
+
+def verify_model_access(download, gated_error_type):
+    try:
+        return download(
+            repo_id=MODEL_ID,
+            filename="config.json",
+            revision=MODEL_REVISION,
+            token=True,
+        )
+    except gated_error_type as error:
+        raise RuntimeError(
+            f"Accept the Gemma license at https://huggingface.co/{MODEL_ID} "
+            "for the account used by this training environment."
+        ) from error
+
+
 def main():
+    # Transformers 5's asynchronous safetensors loader can crash while
+    # materializing Gemma weights on Apple Silicon. Sequential loading is
+    # deterministic and avoids that native loader failure.
+    os.environ.setdefault("HF_DEACTIVATE_ASYNC_LOAD", "1")
+
     import torch
     from datasets import load_dataset
+    from huggingface_hub import get_token, hf_hub_download
+    from huggingface_hub.errors import GatedRepoError
     from peft import LoraConfig
     from trl import SFTConfig, SFTTrainer
 
     arguments = parse_arguments()
-    if not torch.cuda.is_available():
-        raise RuntimeError("This reproducible training path requires a CUDA GPU runtime.")
-    if not os.environ.get("HF_TOKEN"):
-        raise RuntimeError("HF_TOKEN is required after accepting the Gemma license.")
+    training_backend = select_training_backend(torch, arguments.device)
+    if not get_token():
+        raise RuntimeError(
+            "A Hugging Face login or HF_TOKEN is required after accepting the Gemma license."
+        )
+    verify_model_access(hf_hub_download, GatedRepoError)
 
     files = {
         "train": str(arguments.training_data),
@@ -74,7 +125,15 @@ def main():
         raise ValueError("Training and validation scenario IDs overlap")
 
     arguments.output.mkdir(parents=True, exist_ok=True)
-    use_bfloat16 = torch.cuda.is_bf16_supported()
+    use_bfloat16 = training_backend == "cuda" and torch.cuda.is_bf16_supported()
+    use_float16 = training_backend == "cuda" and not use_bfloat16
+    model_dtype = (
+        torch.bfloat16
+        if use_bfloat16
+        else torch.float16
+        if use_float16
+        else torch.float32
+    )
     training_configuration = SFTConfig(
         output_dir=str(arguments.output / "checkpoints"),
         num_train_epochs=arguments.epochs,
@@ -82,20 +141,22 @@ def main():
         per_device_eval_batch_size=2,
         gradient_accumulation_steps=4,
         learning_rate=2e-4,
-        warmup_ratio=0.1,
+        warmup_steps=0.1,
         eval_strategy="epoch",
         save_strategy="epoch",
         logging_steps=1,
         max_length=1024,
         packing=False,
         bf16=use_bfloat16,
-        fp16=not use_bfloat16,
+        fp16=use_float16,
+        optim="adamw_torch_fused" if training_backend == "cuda" else "adamw_torch",
+        dataloader_pin_memory=training_backend == "cuda",
         seed=arguments.seed,
         data_seed=arguments.seed,
         report_to="none",
         model_init_kwargs={
             "revision": MODEL_REVISION,
-            "dtype": torch.bfloat16 if use_bfloat16 else torch.float16,
+            "dtype": model_dtype,
         },
     )
     trainer = SFTTrainer(
@@ -129,8 +190,18 @@ def main():
         "validationScenarioCount": len(validation_ids),
         "epochs": arguments.epochs,
         "seed": arguments.seed,
+        "trainingBackend": training_backend,
+        "accelerator": (
+            torch.cuda.get_device_name(0)
+            if training_backend == "cuda"
+            else "Apple Metal Performance Shaders"
+        ),
         "cudaVersion": torch.version.cuda,
-        "gpu": torch.cuda.get_device_name(0),
+        "mpsBuilt": torch.backends.mps.is_built(),
+        "mpsAvailable": torch.backends.mps.is_available(),
+        "hfAsyncLoadDisabled": os.environ.get("HF_DEACTIVATE_ASYNC_LOAD") == "1",
+        "platform": platform.platform(),
+        "architecture": platform.machine(),
         "packages": {
             package: importlib.metadata.version(package)
             for package in (
