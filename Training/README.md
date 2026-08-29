@@ -1,6 +1,9 @@
 # Gemma 3 270M experiment
 
-This directory contains the reproducible, gated experiment for testing whether a specialized Gemma 3 270M model can replace the 1B local baseline. The 270M model is not the default and must not be shipped unless it passes the comparison gate on the same held-out scenarios.
+This directory contains the reproducible, gated experiment used to test whether
+a specialized Gemma 3 270M model could replace the 1B local baseline. The strict
+same-environment comparison and the target-device benchmark passed on
+2026-08-29, so the verified 270M CPU configuration is now the package default.
 
 The model repositories are license-gated. Accept the Gemma license on Hugging
 Face and authenticate with `hf auth login` or provide `HF_TOKEN` only in the
@@ -138,11 +141,20 @@ scored 100% recovery accuracy and valid JSON with zero fallback; the 1B
 baseline scored 21.4%, 92.9%, and 7.1%, respectively. The 270M p95 latency was
 1.70 seconds versus 4.26 seconds, and peak memory was 1,883 MiB versus
 2,844 MiB.
-A default-model switch still requires an explicit product decision.
+
+The separately approved iPhone 17 Pro run exercised the same 14 held-out test
+scenarios with the exact candidate checksum through LiteRT-LM 0.16.0 on CPU. It
+reproduced 100% recovery accuracy and valid JSON with zero fallback, a 2.09
+second p95 latency, and 1,427 MiB peak memory. Every selected action belonged to
+its developer-approved catalog, and the report contained no API key, local
+path, or raw model response. The same-environment Mac comparison establishes
+the strict five-gate no-regression result; the iPhone run establishes target
+runtime behavior.
 
 The package now exposes the verified artifact as
 `LocalGemmaModelDescriptor.swiftMendGemma3_270MRecovery` and provides
 `LocalGemmaConfiguration.swiftMendGemma3_270MRecovery(modelURL:cacheURL:)` for
-explicit CPU evaluation or adoption. The general configuration still defaults
-to the pinned 1B/GPU provider until that product decision is made. The 270M
-artifact is rejected if paired with the GPU backend.
+explicit CPU configuration. The general configuration now selects the same
+verified 270M/CPU combination by default. The 1B/GPU baseline remains available
+through explicit model and backend arguments. The 270M artifact is rejected if
+paired with the GPU backend.

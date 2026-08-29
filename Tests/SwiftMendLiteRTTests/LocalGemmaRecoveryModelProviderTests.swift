@@ -113,15 +113,15 @@ struct LocalGemmaRecoveryModelProviderTests {
         #expect(model.parameterCount == 1_000_000_000)
     }
 
-    @Test("The general configuration retains the pinned 1B GPU default")
-    func generalConfigurationRetains1BDefault() {
+    @Test("The general configuration uses the verified 270M CPU default")
+    func generalConfigurationUsesVerified270MDefault() {
         let configuration = LocalGemmaConfiguration(
-            modelURL: URL(filePath: "/tmp/gemma3-1b-it-int4.litertlm"),
+            modelURL: URL(filePath: "/tmp/model.litertlm"),
             cacheURL: URL(filePath: "/tmp/cache")
         )
 
-        #expect(configuration.model == .gemma3_1BInstructionTunedQAT4Bit)
-        #expect(configuration.backend == .gpu)
+        #expect(configuration.model == .swiftMendGemma3_270MRecovery)
+        #expect(configuration.backend == .cpu())
         #expect(configuration.verifiesModelChecksum)
     }
 
@@ -206,6 +206,8 @@ struct LocalGemmaRecoveryModelProviderTests {
             modelURL: temporaryDirectory.appending(
                 path: LocalGemmaModelDescriptor.gemma3_1BInstructionTunedQAT4Bit.fileName
             ),
+            model: .gemma3_1BInstructionTunedQAT4Bit,
+            backend: .gpu,
             cacheURL: temporaryDirectory.appending(path: "cache")
         )
 
@@ -224,6 +226,8 @@ struct LocalGemmaRecoveryModelProviderTests {
         try Data([0x01]).write(to: modelURL)
         let configuration = LocalGemmaConfiguration(
             modelURL: modelURL,
+            model: .gemma3_1BInstructionTunedQAT4Bit,
+            backend: .gpu,
             cacheURL: temporaryDirectory.appending(path: "cache")
         )
 

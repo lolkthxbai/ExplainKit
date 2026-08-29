@@ -135,8 +135,8 @@ public struct LocalGemmaConfiguration: Equatable, Sendable {
 
     public init(
         modelURL: URL,
-        model: LocalGemmaModelDescriptor = .gemma3_1BInstructionTunedQAT4Bit,
-        backend: LocalGemmaBackend = .gpu,
+        model: LocalGemmaModelDescriptor = .swiftMendGemma3_270MRecovery,
+        backend: LocalGemmaBackend = .cpu(),
         cacheURL: URL,
         maximumContextTokens: Int = 2_048,
         maximumOutputTokens: Int = 256,
